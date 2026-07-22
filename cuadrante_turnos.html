@@ -1715,6 +1715,7 @@ document.getElementById('cal-detail').addEventListener('click', async e=>{
   renderCuadrante();
   renderAnual();
   renderVacaciones();
+  renderPlBalances();
 });
 
 document.getElementById('cal-prev').addEventListener('click', ()=>{ STATE.ui.month--; if(STATE.ui.month<0){STATE.ui.month=11;STATE.ui.year--;} STATE.ui.calSelected=null; renderCalendario(); });
@@ -2369,6 +2370,7 @@ document.getElementById('cu-vac-panel').addEventListener('click', async e=>{
   renderCuadrante();
   renderVacaciones();
   renderAnual();
+  renderPlBalances();
 });
 document.getElementById('f-prod').addEventListener('change', e=>{ STATE.ui.fProd=e.target.value; renderCuadrante(); });
 document.getElementById('f-worker').addEventListener('input', e=>{ STATE.ui.fWorker=e.target.value; renderCuadrante(); });
