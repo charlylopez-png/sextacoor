@@ -3243,15 +3243,29 @@ function getBalance(name){
     permisoDias: b.permisoDias!=null?b.permisoDias:0
   };
 }
+function vacGastadoDiasReal(name){
+  const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
+  const dias = new Set();
+  (vac.bloques||[]).forEach(b=>{ for(let i=0;i<7;i++) dias.add(addDaysStr(b.start,i)); });
+  const dov = STATE.dayOverrides[name] || {};
+  Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='VAC') dias.add(d); });
+  return dias.size;
+}
+function ldGastadoDiasReal(name){
+  const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
+  const dias = new Set(vac.libres||[]);
+  const dov = STATE.dayOverrides[name] || {};
+  Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='LD') dias.add(d); });
+  return dias.size;
+}
 function renderPlBalances(){
   const el = document.getElementById('pl-balances');
   const name = STATE.ui.anWorker;
   if(!name){ el.innerHTML=''; return; }
   const bal = getBalance(name);
-  const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
-  const vacGastadoDias = (vac.bloques||[]).length*7;
+  const vacGastadoDias = vacGastadoDiasReal(name);
   const vacSaldoDias = bal.vacInicialDias - vacGastadoDias;
-  const ldGastadoDias = (vac.libres||[]).length;
+  const ldGastadoDias = ldGastadoDiasReal(name);
   const ldSaldoDias = bal.ldInicialDias - ldGastadoDias;
   const bolsaSaldoHoras = bal.bolsaInicialHoras - bal.bolsaGastadoHoras;
   const qYear = STATE.ui.anualYear;
