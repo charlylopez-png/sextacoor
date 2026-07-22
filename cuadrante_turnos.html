@@ -179,6 +179,7 @@ tr:hover td{background:var(--panel-alt);}
 .an-day.abs-ld{background:#f472b6;}
 .an-day.abs-hm,.an-day.abs-bj{background:#f5d442;}
 .an-day.abs-per{background:#c084fc;}
+.an-day.abs-libre{background:#8b93a1;}
 .an-day.empty{background:transparent;cursor:default;}
 @media (max-width:1100px){.an-months{grid-template-columns:repeat(2,1fr);}}
 
@@ -2130,6 +2131,7 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
             <option value="BJ" ${dov.ocup==='BJ'?'selected':''}>BJ — Baja</option>
             <option value="PER" ${dov.ocup==='PER'?'selected':''}>PER — Permiso</option>
             <option value="FESTIVO" ${dov.ocup==='FESTIVO'?'selected':''}>FESTIVO — No viene (deja constancia)</option>
+            <option value="LIBRE" ${dov.ocup==='LIBRE'?'selected':''}>LIBRE — Día libre por turno (cambio con compañero / quita JE, L-C y extras)</option>
           </select>
         </div>
         <div class="modal-row">
@@ -2333,11 +2335,12 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
     } else {
       dateList.push(dateStr);
     }
+    const isWork = ocup==='WORK';
     dateList.forEach(d=>{
-      STATE.dayOverrides[name][d] = {
+      STATE.dayOverrides[name][d] = isWork ? {
         ocup, turnoRaw: (STATE.dayOverrides[name][d]||{}).turnoRaw || null,
-        startOverride: (ocup==='WORK' && start) ? start : null,
-        endOverride: (ocup==='WORK' && end) ? end : null,
+        startOverride: start || null,
+        endOverride: end || null,
         color: color || null,
         marks,
         medico: medico.horas>0 ? medico : null,
@@ -2346,6 +2349,12 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
         sindical: (sindTodo || sindical.horas>0) ? sindical : null,
         tr, dieta, hidden,
         lc
+      } : {
+        ocup, turnoRaw: null, startOverride: null, endOverride: null, color: null,
+        marks: {je:false,lu:false,pv:false,pvsp:false,hmt:false},
+        medico: null, extraManual: null, libreDisp: null, sindical: null,
+        tr: 0, dieta: '', hidden,
+        lc: null
       };
       if(tema) STATE.dayTopics[d+'|'+name] = tema;
     });
@@ -3103,8 +3112,11 @@ document.getElementById('an-day-editor').addEventListener('click', async e=>{
     if(!STATE.dayOverrides[name]) STATE.dayOverrides[name] = {};
     let d=start;
     let guard=0;
+    const isWork = ocup==='WORK';
     while(d<=end && guard<400){
-      STATE.dayOverrides[name][d] = {ocup, turnoRaw: ocup==='WORK'?(turnoRaw||null):null, marks, lc: lc||null};
+      STATE.dayOverrides[name][d] = isWork
+        ? {ocup, turnoRaw: turnoRaw||null, marks, lc: lc||null}
+        : {ocup, turnoRaw: null, marks: {je:false,lu:false,pv:false,pvsp:false,hmt:false}, lc: null};
       d=addDaysStr(d,1); guard++;
     }
     await saveKey('dayOverrides', STATE.dayOverrides);
