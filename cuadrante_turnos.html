@@ -2092,6 +2092,7 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
   const sindical = dov.sindical || {horas:0, inicio:'', todoElTurno:false};
   const tr = dov.tr || 0;
   const dieta = dov.dieta || '';
+  const curLc = dov.lc || '';
   const eff = isRange ? {raw:null} : getEffectiveDayRaw(name, dateStr);
   const parsed = eff.raw ? parseShiftString(eff.raw) : {startMin:null,endMin:null};
   const startVal = dov.startOverride || (parsed.startMin!=null ? minToHHMM(parsed.startMin) : '');
@@ -2189,6 +2190,14 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
                 <input type="checkbox" id="gm-mk-${m}" ${marks[m]?'checked':''} style="width:auto;"> ${MARK_SHORT[m]}
               </label>`).join('')}
           </div>
+        </div>
+        <div class="modal-row gm-extra" style="background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.35);">
+          <label>L / C — Jornada extra (JE) o festivo trabajado <span style="font-weight:400;color:var(--muted);">JE librada = 1,5d (12h) · Festivo/FSP librado = 1,75d (14h) a la bolsa</span></label>
+          <select id="gm-lc">
+            <option value="" ${!curLc?'selected':''}>— No aplica</option>
+            <option value="C" ${curLc==='C'?'selected':''}>C — Cobrar</option>
+            <option value="L" ${curLc==='L'?'selected':''}>L — Librar (va a la bolsa)</option>
+          </select>
         </div>
         <div class="modal-row">
           <label>Automático (calendario)</label>
@@ -2302,6 +2311,7 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
     const tr = parseInt(document.getElementById('gm-tr').value||0);
     const dieta = document.getElementById('gm-dieta').value;
     const hidden = document.getElementById('gm-hidden').checked;
+    const lc = document.getElementById('gm-lc').value || null;
     if(!STATE.dayOverrides[name]) STATE.dayOverrides[name] = {};
     const rs = modal.dataset.rangeStart, re = modal.dataset.rangeEnd;
     const dateList = [];
@@ -2323,7 +2333,7 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
         libreDisp: libreDisp.horas>0 ? libreDisp : null,
         sindical: (sindTodo || sindical.horas>0) ? sindical : null,
         tr, dieta, hidden,
-        lc: (STATE.dayOverrides[name][d]||{}).lc || null
+        lc
       };
       if(tema) STATE.dayTopics[d+'|'+name] = tema;
     });
@@ -2680,6 +2690,33 @@ function workerWorkedOnDate(name, d){
   if(fest){ const exc = STATE.holidayExceptions[name]||[]; if(!exc.includes(d)) return false; }
   return true;
 }
+function dayProlongacionHoras(name, d, dov){
+  dov = dov || getDayOverride(name, d);
+  if(!dov || (dov.ocup && dov.ocup!=='WORK')) return 0;
+  let horas = 0;
+  const wd = weekdayKey(parseISO(d));
+  const pattern = getWorkerPatternForDate(name, d);
+  const normalRaw = pattern ? pattern[wd] : null;
+  if(normalRaw && dov.endOverride && !dov.startOverride){
+    const np = parseShiftString(normalRaw);
+    const p = dov.endOverride.split(':').map(Number);
+    let eMin = p[0]*60+(p[1]||0);
+    let normalEnd = np.endMin;
+    if(np.startMin!=null && normalEnd<=np.startMin) normalEnd+=1440;
+    if(eMin<=np.startMin) eMin+=1440;
+    if(normalEnd!=null && eMin>normalEnd) horas += (eMin-normalEnd)/60;
+  }
+  if(dov.extraManual && dov.extraManual.horas>0) horas += dov.extraManual.horas;
+  return horas;
+}
+function diaLibradoBolsaHoras(name, d, dov){
+  dov = dov || getDayOverride(name, d);
+  if(!dov || dov.lc!=='L' || (dov.ocup && dov.ocup!=='WORK')) return 0;
+  const esFestivo = !!festivoOn(d) || isFestivoEspecialDate(d);
+  if(esFestivo) return 14;
+  if(dov.marks && dov.marks.je) return 12;
+  return 0;
+}
 function workerYtdSummary(name){
   const {start, end, year} = ytdRange();
   let diasTrabajados=0, vacDisfrutadas=0, ldDisfrutadas=0, hrExtraGeneradas=0;
@@ -2690,21 +2727,7 @@ function workerYtdSummary(name){
     if(dov){
       if(dov.ocup==='VAC') vacDisfrutadas++;
       if(dov.ocup==='LD') ldDisfrutadas++;
-      if((!dov.ocup || dov.ocup==='WORK')){
-        const wd = weekdayKey(parseISO(d));
-        const pattern = getWorkerPatternForDate(name, d);
-        const normalRaw = pattern ? pattern[wd] : null;
-        if(normalRaw && dov.endOverride && !dov.startOverride){
-          const np = parseShiftString(normalRaw);
-          const p = dov.endOverride.split(':').map(Number);
-          let eMin = p[0]*60+(p[1]||0);
-          let normalEnd = np.endMin;
-          if(np.startMin!=null && normalEnd<=np.startMin) normalEnd+=1440;
-          if(eMin<=np.startMin) eMin+=1440;
-          if(normalEnd!=null && eMin>normalEnd) hrExtraGeneradas += (eMin-normalEnd)/60;
-        }
-        if(dov.extraManual && dov.extraManual.horas>0) hrExtraGeneradas += dov.extraManual.horas;
-      }
+      hrExtraGeneradas += dayProlongacionHoras(name, d, dov);
     }
     d = addDaysStr(d,1); guard++;
   }
@@ -3243,31 +3266,80 @@ function getBalance(name){
     permisoDias: b.permisoDias!=null?b.permisoDias:0
   };
 }
-function vacGastadoDiasReal(name){
+function vacDisfrutadasFechas(name){
   const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
   const dias = new Set();
   (vac.bloques||[]).forEach(b=>{ for(let i=0;i<7;i++) dias.add(addDaysStr(b.start,i)); });
   const dov = STATE.dayOverrides[name] || {};
   Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='VAC') dias.add(d); });
-  return dias.size;
+  return [...dias].sort();
 }
-function ldGastadoDiasReal(name){
+function ldDisfrutadasFechas(name){
   const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
   const dias = new Set(vac.libres||[]);
   const dov = STATE.dayOverrides[name] || {};
   Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='LD') dias.add(d); });
-  return dias.size;
+  return [...dias].sort();
+}
+function vacGastadoDiasReal(name){ return vacDisfrutadasFechas(name).length; }
+function ldGastadoDiasReal(name){ return ldDisfrutadasFechas(name).length; }
+function bolsaGeneradaFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const out = [];
+  Object.keys(dov).sort().forEach(d=>{
+    const o = dov[d];
+    const prol = Math.round(dayProlongacionHoras(name, d, o)*10)/10;
+    if(prol>0) out.push({date:d, horas:prol, tipo:'Prolongación / Hr+'});
+    const lib = diaLibradoBolsaHoras(name, d, o);
+    if(lib>0) out.push({date:d, horas:lib, tipo: lib===14?'Festivo librado':'JE librada'});
+  });
+  return out;
+}
+function bolsaGeneradaAutoHoras(name){
+  return Math.round(bolsaGeneradaFechas(name).reduce((s,x)=>s+x.horas,0)*10)/10;
+}
+function bolsaGastadaFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const out = [];
+  Object.keys(dov).sort().forEach(d=>{
+    const o = dov[d];
+    if(o && o.libreDisp && o.libreDisp.horas>0) out.push({date:d, horas:o.libreDisp.horas});
+  });
+  return out;
+}
+function bolsaGastadaAutoHoras(name){
+  return Math.round(bolsaGastadaFechas(name).reduce((s,x)=>s+x.horas,0)*10)/10;
+}
+function agruparFechasConsecutivas(fechas){
+  const sorted = [...fechas].sort();
+  const grupos = [];
+  let cur = null;
+  sorted.forEach(f=>{
+    if(cur && addDaysStr(cur.end,1)===f){ cur.end = f; }
+    else { cur = {start:f, end:f}; grupos.push(cur); }
+  });
+  return grupos;
+}
+function formatFechasAgrupadas(fechas){
+  if(!fechas.length) return '—';
+  return agruparFechasConsecutivas(fechas).map(g=> g.start===g.end ? fmtDMY(g.start) : `${fmtDMY(g.start)} → ${fmtDMY(g.end)}`).join(', ');
 }
 function renderPlBalances(){
   const el = document.getElementById('pl-balances');
   const name = STATE.ui.anWorker;
   if(!name){ el.innerHTML=''; return; }
   const bal = getBalance(name);
-  const vacGastadoDias = vacGastadoDiasReal(name);
+  const vacFechas = vacDisfrutadasFechas(name);
+  const vacGastadoDias = vacFechas.length;
   const vacSaldoDias = bal.vacInicialDias - vacGastadoDias;
-  const ldGastadoDias = ldGastadoDiasReal(name);
+  const ldFechas = ldDisfrutadasFechas(name);
+  const ldGastadoDias = ldFechas.length;
   const ldSaldoDias = bal.ldInicialDias - ldGastadoDias;
-  const bolsaSaldoHoras = bal.bolsaInicialHoras - bal.bolsaGastadoHoras;
+  const bolsaGeneradoFechas = bolsaGeneradaFechas(name);
+  const bolsaGeneradoAuto = bolsaGeneradaAutoHoras(name);
+  const bolsaGastadoFechas = bolsaGastadaFechas(name);
+  const bolsaGastadoAuto = bolsaGastadaAutoHoras(name);
+  const bolsaSaldoHoras = Math.round((bal.bolsaInicialHoras + bolsaGeneradoAuto - bal.bolsaGastadoHoras - bolsaGastadoAuto)*10)/10;
   const qYear = STATE.ui.anualYear;
   const findeCount = weekendQuatrimestres(name, qYear).length;
   el.innerHTML = `
@@ -3290,13 +3362,31 @@ function renderPlBalances(){
     <div class="statcard">
       <div class="l">BOLSA LIBRE (horas)</div>
       <div class="controls" style="margin:8px 0 4px;flex-wrap:wrap;">
-        Inicial: <input type="number" class="editnum" id="bal-bolsaInicialHoras" value="${bal.bolsaInicialHoras}" style="width:50px;">h
+        Ajuste: <input type="number" class="editnum" id="bal-bolsaInicialHoras" value="${bal.bolsaInicialHoras}" style="width:50px;">h
       </div>
+      <div class="muted" style="font-size:11px;">+ Generado auto: ${bolsaGeneradoAuto}h</div>
       <div class="controls" style="margin:4px 0;flex-wrap:wrap;">
-        Gastado: <input type="number" class="editnum" id="bal-bolsaGastadoHoras" value="${bal.bolsaGastadoHoras}" style="width:50px;">h
+        Ajuste gastado: <input type="number" class="editnum" id="bal-bolsaGastadoHoras" value="${bal.bolsaGastadoHoras}" style="width:50px;">h
       </div>
+      <div class="muted" style="font-size:11px;">+ Gastado auto: ${bolsaGastadoAuto}h</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${bolsaSaldoHoras<0?'var(--danger)':'var(--local)'}">${bolsaSaldoHoras}h</div>
       <div class="l">SALDO</div>
+    </div>
+  </div>
+  <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(3,1fr);">
+    <div class="statcard" style="padding:10px;">
+      <div class="l">Días de vacaciones disfrutados</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${formatFechasAgrupadas(vacFechas)}</div>
+    </div>
+    <div class="statcard" style="padding:10px;">
+      <div class="l">Días de LD disfrutados</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${formatFechasAgrupadas(ldFechas)}</div>
+    </div>
+    <div class="statcard" style="padding:10px;">
+      <div class="l">Horas de bolsa disfrutadas</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${bolsaGastadoFechas.length?bolsaGastadoFechas.map(x=>`${fmtDMY(x.date)}: ${x.horas}h`).join(', '):'—'}</div>
+      <div class="l" style="margin-top:8px;">Horas de bolsa generadas</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${bolsaGeneradoFechas.length?bolsaGeneradoFechas.map(x=>`${fmtDMY(x.date)}: +${x.horas}h (${x.tipo})`).join(', '):'—'}</div>
     </div>
   </div>
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));">
