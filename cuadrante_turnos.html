@@ -124,6 +124,9 @@ button.small{padding:3px 8px;font-size:11.5px;}
 .cal-day.abs-ld{--abs-color:#f472b6;}
 .cal-day.abs-hm,.cal-day.abs-bj{--abs-color:#f5d442;}
 .cal-day.abs-per{--abs-color:#c084fc;}
+.cal-day .lc-mark{position:absolute;bottom:6px;right:6px;font-size:8.5px;font-weight:700;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0d0d12;}
+.cal-day .lc-mark.lc-l{background:#22d3ee;}
+.cal-day .lc-mark.lc-c{background:#fbbf24;}
 .cal-day .daynum{font-family:'Space Grotesk';font-weight:600;font-size:14px;}
 .cal-day .fname{font-size:10px;color:var(--h-color);margin-top:3px;line-height:1.25;}
 .cal-day .count{position:absolute;bottom:6px;right:7px;font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono';}
@@ -162,7 +165,10 @@ tr:hover td{background:var(--panel-alt);}
 .an-month{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px;}
 .an-month h4{font-size:11.5px;text-align:center;margin-bottom:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-family:'Inter';font-weight:600;}
 .an-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2.5px;}
-.an-day{aspect-ratio:1;border-radius:3px;background:var(--panel-alt);font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted-2);font-family:'IBM Plex Mono';}
+.an-day{aspect-ratio:1;border-radius:3px;background:var(--panel-alt);font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted-2);font-family:'IBM Plex Mono';position:relative;}
+.an-day .lc-dot{position:absolute;bottom:1.5px;right:1.5px;width:5px;height:5px;border-radius:50%;}
+.an-day .lc-dot.lc-l{background:#22d3ee;}
+.an-day .lc-dot.lc-c{background:#fbbf24;}
 .an-day:hover{outline:1px solid var(--text);}
 .an-day.weekend{background:#242732;}
 .an-day.holiday{background:var(--h-color);color:#10121a;font-weight:700;}
@@ -353,6 +359,8 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
         <div class="legend">
           <span><i class="dot" style="background:var(--festivo);"></i>Festivo</span>
           <span><i class="dot" style="background:var(--local);box-shadow:0 0 0 2px var(--local);"></i>Turno resaltado</span>
+          <span><i class="dot" style="background:#22d3ee;"></i>JE/festivo librado</span>
+          <span><i class="dot" style="background:#fbbf24;"></i>JE/festivo cobrado</span>
         </div>
         <div id="an-months" class="an-months"></div>
         <div id="an-day-editor"></div>
@@ -368,6 +376,8 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
         <div class="legend">
           <span><i class="dot" style="background:var(--festivo);"></i>Festivo</span>
           <span><i class="dot" style="background:var(--local);box-shadow:0 0 0 2px var(--local);"></i>Turno del trabajador</span>
+          <span><i class="dot" style="background:#22d3ee;"></i>JE/festivo librado</span>
+          <span><i class="dot" style="background:#fbbf24;"></i>JE/festivo cobrado</span>
         </div>
         <div id="cal-grid" class="cal-grid"></div>
         <div id="cal-detail" class="cal-detail"></div>
@@ -1566,11 +1576,13 @@ function renderCalendario(){
     const selected = STATE.ui.calSelected===dateStr;
     const hl = STATE.ui.anWorker ? wouldWorkByPattern(STATE.ui.anWorker, dateStr) : false;
     const absCode = STATE.ui.anWorker ? workerDayAbsenceCode(STATE.ui.anWorker, dateStr) : null;
+    const lcInfo = STATE.ui.anWorker ? workerDayLcInfo(STATE.ui.anWorker, dateStr) : null;
     const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
     const inRange = STATE.ui.anWorker && rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
     const style = fest ? ` style="--h-color:var(--festivo)"` : '';
     html += `<div class="cal-day ${weekend?'weekend':''} ${fest?'holiday':''} ${selected?'selected':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''}" data-date="${dateStr}"${style}>
       <div class="daynum">${d}</div>
+      ${lcInfo?`<div class="lc-mark lc-${lcInfo.lc.toLowerCase()}" title="${lcInfo.label}">${lcInfo.lc}</div>`:''}
       ${fest?`<div class="fname">${fest.name}</div>`:''}
     </div>`;
   }
@@ -2843,6 +2855,13 @@ function workerDayAbsenceCode(name, dateStr){
   }
   return null;
 }
+function workerDayLcInfo(name, dateStr){
+  const dov = getDayOverride(name, dateStr);
+  if(!dov || !dov.lc || (dov.ocup && dov.ocup!=='WORK')) return null;
+  const esFestivo = !!festivoOn(dateStr) || isFestivoEspecialDate(dateStr);
+  const tipo = esFestivo ? 'Festivo' : ((dov.marks && dov.marks.je) ? 'JE' : 'Extra');
+  return { lc: dov.lc, tipo, label: `${tipo} — ${dov.lc==='L'?'Librar (va a la bolsa)':'Cobrar'}` };
+}
 function isHighlightedDay(dateStr){
   const wd = weekdayKey(parseISO(dateStr));
   if(STATE.ui.anWorker){
@@ -2900,10 +2919,12 @@ function renderAnual(){
       const weekend = isWeekendDate(dateStr);
       const hl = isHighlightedDay(dateStr);
       const absCode = STATE.ui.anWorker ? workerDayAbsenceCode(STATE.ui.anWorker, dateStr) : null;
+      const lcInfo = STATE.ui.anWorker ? workerDayLcInfo(STATE.ui.anWorker, dateStr) : null;
       const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
       const inRange = rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
       const style = fest?` style="--h-color:var(--festivo)"`:'';
-      gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''}" data-date="${dateStr}" title="${fest?fest.name:d+' de '+MESES_NOMBRE[m]}"${style}>${d}</div>`;
+      const dayTitle = fest ? fest.name : (lcInfo ? lcInfo.label : d+' de '+MESES_NOMBRE[m]);
+      gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''}" data-date="${dateStr}" title="${dayTitle}"${style}>${d}${lcInfo?`<span class="lc-dot lc-${lcInfo.lc.toLowerCase()}"></span>`:''}</div>`;
     }
     html += `<div class="an-month"><h4>${MESES_NOMBRE[m]}</h4><div class="an-grid">${gh}</div></div>`;
   }
