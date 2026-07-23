@@ -12,27 +12,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --bg:#12141a;
-  --panel:#1b1e26;
-  --panel-alt:#20232c;
-  --border:#2a2e38;
-  --text:#eef0f3;
-  --muted:#8b93a1;
-  --muted-2:#5f6572;
-  --lasexta:#22c55e;
-  --antena3:#2f8bff;
-  --nacional:#e0517a;
-  --autonomico:#b784ff;
-  --local:#3ecf8e;
-  --convenio:#f5b942;
-  --festivo:#ff4d4d;
-  --danger:#ff5a5a;
-  --turno-manana:#3b82f6;
-  --turno-tarde:#f2994a;
-  --turno-completo:#a0623d;
-  --turno-mixto:#e619c9;
-  --fucsia:#e619c9;
-  --turno-finde:#a78bfa;
+  --bg:#f4f5f7;
+  --panel:#ffffff;
+  --panel-alt:#eef0f4;
+  --border:#dde1e8;
+  --text:#1a1d24;
+  --muted:#5b6270;
+  --muted-2:#8890a0;
+  --lasexta:#16a34a;
+  --antena3:#2563eb;
+  --nacional:#db2777;
+  --autonomico:#9333ea;
+  --local:#0d9488;
+  --convenio:#b45309;
+  --festivo:#dc2626;
+  --danger:#dc2626;
+  --turno-manana:#2563eb;
+  --turno-tarde:#c2410c;
+  --turno-completo:#8a4a26;
+  --turno-mixto:#c026d3;
+  --fucsia:#c026d3;
+  --turno-finde:#7c3aed;
   --radius:10px;
 }
 *{box-sizing:border-box;}
@@ -54,10 +54,10 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;margin:0 0 4px 0
   padding:20px 14px;display:flex;flex-direction:column;gap:18px;
 }
 .brand{padding:0 6px;}
-.brand-logo{width:88px;height:auto;display:block;margin-bottom:12px;}
+.brand-logo{width:88px;height:auto;display:block;margin-bottom:12px;background:#12141a;border-radius:10px;padding:10px 12px;box-sizing:border-box;}
 .brand h1{font-size:18px;line-height:1.2;background:linear-gradient(90deg,var(--local),var(--fucsia));-webkit-background-clip:text;background-clip:text;color:transparent;}
 .brand p{margin:4px 0 14px;color:var(--muted);font-size:11.5px;}
-.brand-logo-mediapro{width:56px;height:auto;opacity:.85;display:block;}
+.brand-logo-mediapro{width:56px;height:auto;opacity:.9;display:block;background:#12141a;border-radius:10px;padding:8px 10px;box-sizing:border-box;}
 
 nav{display:flex;flex-direction:column;gap:4px;}
 .navbtn{
@@ -113,7 +113,7 @@ button.small{padding:3px 8px;font-size:11.5px;}
 }
 .cal-day:hover{border-color:var(--local);}
 .cal-day.empty{background:transparent;border-color:transparent;cursor:default;}
-.cal-day.weekend{background:#242732;}
+.cal-day.weekend{background:#e6e9ee;}
 .cal-day.holiday{box-shadow:inset 0 0 0 1.5px var(--h-color);}
 .cal-day.selected{border-color:var(--text);}
 .cal-day.rangesel{background:rgba(230,25,201,.28);box-shadow:0 0 0 2px var(--fucsia) inset;position:relative;}
@@ -127,7 +127,11 @@ button.small{padding:3px 8px;font-size:11.5px;}
 .cal-day .lc-mark{position:absolute;bottom:6px;right:6px;font-size:8.5px;font-weight:700;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0d0d12;}
 .cal-day .lc-mark.lc-l{background:#22d3ee;}
 .cal-day .lc-mark.lc-c{background:#fbbf24;}
+.cal-day .lc-mark.extra-mark{background:var(--convenio);color:#2a1700;}
 .cal-day .daynum{font-family:'Space Grotesk';font-weight:600;font-size:14px;}
+.cal-day.festivo-work .daynum{font-weight:800;color:inherit;border-bottom:3px solid currentColor;padding-bottom:1px;}
+.cal-day.festivo-work.festivo-work-l{color:#b8860b;}
+.cal-day.festivo-work.festivo-work-c{color:#15803d;}
 .cal-day .fname{font-size:10px;color:var(--h-color);margin-top:3px;line-height:1.25;}
 .cal-day .count{position:absolute;bottom:6px;right:7px;font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono';}
 
@@ -142,7 +146,7 @@ table{border-collapse:collapse;width:auto;min-width:100%;font-size:12.5px;}
 th,td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
 th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;background:var(--panel);}
 .tbl-wrap{overflow-x:scroll;border:1px solid var(--border);border-radius:var(--radius);}
-td.weekend-col{background:rgba(255,255,255,.03);}
+td.weekend-col{background:rgba(0,0,0,.035);}
 td.holiday-col{background:rgba(224,81,122,.10);}
 td.worked-holiday{color:var(--convenio);font-weight:600;}
 tr:hover td{background:var(--panel-alt);}
@@ -169,9 +173,15 @@ tr:hover td{background:var(--panel-alt);}
 .an-day .lc-dot{position:absolute;bottom:1.5px;right:1.5px;width:5px;height:5px;border-radius:50%;}
 .an-day .lc-dot.lc-l{background:#22d3ee;}
 .an-day .lc-dot.lc-c{background:#fbbf24;}
+.an-day .lc-dot.extra-dot{background:var(--convenio);}
 .an-day:hover{outline:1px solid var(--text);}
-.an-day.weekend{background:#242732;}
-.an-day.holiday{background:var(--h-color);color:#10121a;font-weight:700;}
+.an-day.festivo-work{overflow:hidden;}
+.an-day.festivo-work .daynum{font-weight:800;position:relative;z-index:1;}
+.an-day.festivo-work::after{content:'';position:absolute;left:0;right:0;top:60%;height:22%;background:currentColor;opacity:.6;pointer-events:none;}
+.an-day.festivo-work.festivo-work-l{color:#b8860b;}
+.an-day.festivo-work.festivo-work-c{color:#15803d;}
+.an-day.weekend{background:#e6e9ee;}
+.an-day.holiday{background:color-mix(in srgb, var(--h-color) 32%, var(--panel-alt));color:#10121a;font-weight:700;}
 .an-day.hl{box-shadow:0 0 0 2px var(--local) inset;}
 .an-day.rangesel{background:rgba(230,25,201,.35);box-shadow:0 0 0 2px var(--fucsia) inset;font-weight:700;}
 .an-day.abs{color:#0d0d12;font-weight:700;}
@@ -186,10 +196,13 @@ tr:hover td{background:var(--panel-alt);}
 .aliasbadge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
 .aliasbadge.manana{background:rgba(59,130,246,.16);color:var(--turno-manana);}
 .aliasbadge.tarde{background:rgba(242,153,74,.16);color:var(--turno-tarde);}
-.aliasbadge.completo{background:rgba(160,98,61,.22);color:#d99a72;}
+.aliasbadge.completo{background:rgba(160,98,61,.22);color:var(--turno-completo);}
 .aliasbadge.mixto{background:rgba(230,25,201,.16);color:var(--turno-mixto);}
 .aliasbadge.finde{background:rgba(167,139,250,.16);color:var(--turno-finde);}
 .aliasbadge.otro{background:rgba(139,147,161,.16);color:var(--muted);}
+.hr-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.hr-chip{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:10.5px;background:var(--panel-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;white-space:nowrap;}
+.hr-chip .tag{font-family:'Inter';font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--muted);background:var(--border);border-radius:3px;padding:1px 3px;}
 .pat-daycell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;min-width:64px;}
 .pat-daycell .t{font-size:11px;}
 .pat-daycell .brk{display:flex;align-items:center;gap:2px;font-size:10px;color:var(--muted);}
@@ -197,20 +210,24 @@ tr:hover td{background:var(--panel-alt);}
 .pat-daycell.off{color:var(--muted-2);}
 .turno-daycell{min-width:88px;vertical-align:top;padding:4px 3px;}
 .daycell-box{
-  border:1px solid rgba(255,255,255,.14);
+  border:1px solid rgba(0,0,0,.12);
   border-radius:8px;
   padding:6px 4px 5px;
-  background:rgba(255,255,255,.025);
+  background:rgba(0,0,0,.02);
   display:flex;flex-direction:column;align-items:center;gap:3px;
 }
-.daycell-box .time{font-family:'IBM Plex Mono';font-size:11.5px;font-weight:700;color:var(--text);line-height:1.2;text-align:center;padding-bottom:3px;border-bottom:1px dashed rgba(255,255,255,.1);width:100%;}
+.daycell-box .time{font-family:'IBM Plex Mono';font-size:11.5px;font-weight:700;color:var(--text);line-height:1.2;text-align:center;padding-bottom:3px;border-bottom:1px dashed rgba(0,0,0,.12);width:100%;}
 .daycell-box .netto{font-family:'IBM Plex Mono';font-size:10.5px;font-weight:700;color:var(--local);}
 .daycell-box.manana{background:rgba(59,130,246,.10);border-color:rgba(59,130,246,.35);}
 .daycell-box.tarde{background:rgba(242,153,74,.10);border-color:rgba(242,153,74,.35);}
 .daycell-box.completo{background:rgba(160,98,61,.16);border-color:rgba(160,98,61,.45);}
 .gantt-wrap{min-width:1100px;}
 .gantt-row{display:flex;border-bottom:1px solid var(--border);align-items:stretch;min-height:60px;}
-.gantt-bar{position:absolute;top:3px;bottom:3px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;gap:2px;padding:2px 0;}
+.gantt-bar{position:absolute;top:3px;bottom:3px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;gap:2px;padding:2px 0;border:1px solid rgba(0,0,0,.12);}
+.gantt-bar.festivo-work-bar{box-shadow:inset 0 0 0 2px var(--fw-color);}
+.gantt-bar.festivo-work-bar::after{content:'';position:absolute;left:4px;right:4px;bottom:3px;height:3px;border-radius:2px;background:var(--fw-color);pointer-events:none;}
+.gantt-bar.festivo-work-bar-l{--fw-color:#b8860b;}
+.gantt-bar.festivo-work-bar-c{--fw-color:#15803d;}
 .gantt-bar input.gantt-tema{width:100%;flex:1;background:transparent;border:none;font-size:11px;text-align:center;color:inherit;padding:0 4px;}
 .gantt-bar input.gantt-tema::placeholder{color:inherit;opacity:.85;font-weight:600;}
 .gantt-badges{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;padding:0 3px 2px;}
@@ -219,7 +236,7 @@ tr:hover td{background:var(--panel-alt);}
 .gantt-seg{position:absolute;top:3px;bottom:3px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;pointer-events:none;}
 .gantt-subseg{top:auto;bottom:-9px;height:14px;border-radius:4px;font-size:8px;opacity:.92;box-shadow:0 0 0 1px var(--bg);}
 .modal-overlay{position:fixed;inset:0;background:transparent;z-index:1000;}
-.modal-box{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;width:660px;max-width:94vw;max-height:92vh;overflow:visible;box-shadow:0 12px 40px rgba(0,0,0,.55);}
+.modal-box{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;width:660px;max-width:94vw;max-height:92vh;overflow:visible;box-shadow:0 12px 40px rgba(20,24,32,.18);}
 .gm-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;min-width:0;}
 .gm-col{display:flex;flex-direction:column;gap:8px;min-width:0;}
 .modal-box input,.modal-box select{max-width:100%;box-sizing:border-box;}
@@ -229,7 +246,7 @@ tr:hover td{background:var(--panel-alt);}
 .modal-row{margin-bottom:0;}
 .modal-row label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:4px;}
 .color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;display:inline-block;margin-right:6px;box-shadow:0 0 0 2px transparent;}
-.color-swatch.sel{box-shadow:0 0 0 2px #fff;}
+.color-swatch.sel{box-shadow:0 0 0 2px var(--text);}
 .gantt-row.gantt-head{background:var(--panel);position:sticky;top:0;min-height:26px;border-bottom:2px solid var(--border);}
 .gantt-name{width:190px;flex-shrink:0;padding:6px 10px;font-size:12px;font-weight:600;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);background:var(--panel);position:relative;}
 .gantt-name-controls{position:absolute;top:2px;right:2px;display:flex;gap:2px;opacity:.35;transition:opacity .15s;}
@@ -260,7 +277,7 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
 .statcard .l{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
 
 ::-webkit-scrollbar{height:8px;width:8px;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+::-webkit-scrollbar-thumb{background:var(--muted-2);border-radius:4px;}
 </style>
 </head>
 <body>
@@ -1172,6 +1189,7 @@ let STATE = {
 
 function fmtISO(y,m,d){ return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
 function fmtDMY(dateStr){ if(!dateStr) return ''; const [y,m,d]=dateStr.split('-'); return `${d}-${m}-${y}`; }
+function fmtDMY2(dateStr){ if(!dateStr) return ''; const [y,m,d]=dateStr.split('-'); return `${d}-${m}-${y.slice(2)}`; }
 function isFestivoEspecialDate(dateStr){
   if(!dateStr) return false;
   const [, m, d] = dateStr.split('-').map(Number);
@@ -1527,22 +1545,32 @@ function workerWeeklyPatternHours(name){
   return count? Math.round((total/count)*10)/10 : null;
 }
 function quatriIndex(dateStr){ const m=parseInt(dateStr.slice(5,7)); return Math.floor((m-1)/4); }
+function quatriRangeDates(year, qIdx){
+  const startMonth = qIdx*4;
+  const endMonth = startMonth+3;
+  return { start: fmtISO(year, startMonth+1, 1), end: fmtISO(year, endMonth+1, daysInMonth(year, endMonth)) };
+}
+// Un cuatrimestre solo cuenta si el trabajador tuvo, SIN HUECOS, un turno asignado
+// que incluyera fin de semana durante los 4 meses completos (no basta con solapar un día).
 function weekendQuatrimestres(name, year){
-  const set=new Set();
-  for(const b of allBlocks()){
-    const w = b.workers.find(x=>x.name===name);
-    if(!w) continue;
-    const worksWeekend = !!(w.pattern.sat || w.pattern.sun);
-    if(!worksWeekend) continue;
-    let cur=b.start;
-    let guard=0;
-    while(cur<=b.end && guard<40){
-      const y=cur.slice(0,4);
-      if(!year || y===String(year)) set.add(y+'-'+quatriIndex(cur));
-      cur=addDaysStr(cur,1); guard++;
+  const out = [];
+  for(let q=0; q<3; q++){
+    const {start, end} = quatriRangeDates(year, q);
+    let d = start, guard=0, cubreTodo=true;
+    while(d<=end && guard<130){
+      let matched = false;
+      for(const b of allBlocks()){
+        if(d<b.start || d>b.end) continue;
+        const w = b.workers.find(x=>x.name===name);
+        if(w && (w.pattern.sat || w.pattern.sun)) matched = true;
+        break;
+      }
+      if(!matched){ cubreTodo = false; break; }
+      d = addDaysStr(d,1); guard++;
     }
+    if(cubreTodo) out.push(year+'-'+q);
   }
-  return Array.from(set);
+  return out;
 }
 
 /* ---------- tabs ---------- */
@@ -1579,12 +1607,15 @@ function renderCalendario(){
     const hl = STATE.ui.anWorker ? wouldWorkByPattern(STATE.ui.anWorker, dateStr) : false;
     const absCode = STATE.ui.anWorker ? workerDayAbsenceCode(STATE.ui.anWorker, dateStr) : null;
     const lcInfo = STATE.ui.anWorker ? workerDayLcInfo(STATE.ui.anWorker, dateStr) : null;
+    const extraHoras = STATE.ui.anWorker ? dayProlongacionHoras(STATE.ui.anWorker, dateStr) : 0;
+    const festivoWork = lcInfo && lcInfo.tipo==='Festivo';
     const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
     const inRange = STATE.ui.anWorker && rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
     const style = fest ? ` style="--h-color:var(--festivo)"` : '';
-    html += `<div class="cal-day ${weekend?'weekend':''} ${fest?'holiday':''} ${selected?'selected':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''}" data-date="${dateStr}"${style}>
+    html += `<div class="cal-day ${weekend?'weekend':''} ${fest?'holiday':''} ${selected?'selected':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${festivoWork?'festivo-work festivo-work-'+lcInfo.lc.toLowerCase():''}" data-date="${dateStr}"${style} title="${festivoWork?lcInfo.label:''}">
       <div class="daynum">${d}</div>
-      ${lcInfo?`<div class="lc-mark lc-${lcInfo.lc.toLowerCase()}" title="${lcInfo.label}">${lcInfo.lc}</div>`:''}
+      ${lcInfo && !festivoWork?`<div class="lc-mark lc-${lcInfo.lc.toLowerCase()}" title="${lcInfo.label}">${lcInfo.lc}</div>`:''}
+      ${!lcInfo && extraHoras>0?`<div class="lc-mark extra-mark" title="Horas extra: +${Math.round(extraHoras*10)/10}h">+</div>`:''}
       ${fest?`<div class="fname">${fest.name}</div>`:''}
     </div>`;
   }
@@ -1903,6 +1934,7 @@ function renderCuadranteDiario(){
     const f = getFicha(r.name);
     const dov = r.dov;
     let color = 'transparent', border='1px solid var(--border)', textColor='var(--text)';
+    let festivoBarClass = '';
     let label = r.kind==='work' ? `${minToHHMM(r.startMin%1440)}-${minToHHMM(r.endMin%1440)}${r.parsed.label?' '+dispLabel(r.parsed.label):''}` : ocupLabelAndColor(r.ocup).label;
     const marks = (dov && dov.marks) ? {...dov.marks} : {};
     const tr = (dov && dov.tr) || 0;
@@ -1927,8 +1959,14 @@ function renderCuadranteDiario(){
       if(sindical && sindical.todoElTurno){
         color = SINDICAL_COLOR; border='none'; textColor='#2b0526';
       }
+      // festivo trabajado con L/C ya decidido: banda + borde dorado (librar) o verde (cobrar)
+      if((fest || isFSP) && dov && dov.lc){
+        festivoBarClass = ' festivo-work-bar festivo-work-bar-'+dov.lc.toLowerCase();
+      }
       // segmento de prolongación (Hr+) si el fin efectivo supera el fin normal del turno Y no se ha cambiado la hora de inicio a mano
-      if(!r.startChanged && r.endMin > r.normalEnd + 0.5){
+      // (no aplica en festivo/JE marcada: ese tiempo se resuelve por completo con el selector L/C, no como prolongación)
+      const esJEoFestivoRow = !!fest || isFSP || (marks && marks.je);
+      if(!esJEoFestivoRow && !r.startChanged && r.endMin > r.normalEnd + 0.5){
         mainEnd = r.normalEnd;
         const leftE = pctOf(mainEnd), widthE = Math.max(0.4, pctOf(r.endMin)-pctOf(mainEnd));
         extraSegHTML += `<div class="gantt-bar gantt-seg" style="left:${leftE}%;width:${widthE}%;background:${PROLONG_COLOR};color:#241a04;" title="Hr+ prolongación: ${Math.round((r.endMin-r.normalEnd)/60*10)/10}h">Hr+</div>`;
@@ -1990,7 +2028,7 @@ function renderCuadranteDiario(){
         ${r.name}${f.telTrab?`<br><span class="muted" style="font-size:10px;">${f.telTrab}</span>`:''}
       </div>
       <div class="gantt-track">
-        <div class="gantt-bar" data-worker="${encodeURIComponent(r.name)}" data-date="${dateStr}" style="left:${leftPct}%;width:${widthPct}%;background:${color};border:${border};color:${textColor};">
+        <div class="gantt-bar${festivoBarClass}" data-worker="${encodeURIComponent(r.name)}" data-date="${dateStr}" style="left:${leftPct}%;width:${widthPct}%;background:${color};border:${border};color:${textColor};" title="${dov && dov.lc ? (dov.lc==='L'?'Festivo librado (va a la bolsa)':'Festivo cobrado') : ''}">
           <input type="text" class="gantt-tema" data-worker="${encodeURIComponent(r.name)}" data-date="${dateStr}" placeholder="${label}" value="${(STATE.dayTopics[dateStr+'|'+r.name])||''}">
           ${badgesHTML}
         </div>
@@ -2217,8 +2255,8 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
         <div class="modal-row">
           <label>Automático (calendario)</label>
           <div style="display:flex;gap:6px;">
-            <span class="gantt-badge" style="background:${fest?'rgba(255,255,255,.18)':'rgba(255,255,255,.05)'};opacity:${fest?1:.4};">${isFSP?'FSP':'F'}</span>
-            <span class="gantt-badge" style="background:${isPWE?'rgba(255,255,255,.18)':'rgba(255,255,255,.05)'};opacity:${isPWE?1:.4};">PWE</span>
+            <span class="gantt-badge" style="background:${fest?'var(--festivo)':'var(--panel-alt)'};color:${fest?'#fff':'var(--muted)'};opacity:${fest?1:.6};">${isFSP?'FSP':'F'}</span>
+            <span class="gantt-badge" style="background:${isPWE?'var(--turno-finde)':'var(--panel-alt)'};color:${isPWE?'#fff':'var(--muted)'};opacity:${isPWE?1:.6};">PWE</span>
           </div>
         </div>
       </div>
@@ -2719,14 +2757,22 @@ function dayProlongacionHoras(name, d, dov){
   const wd = weekdayKey(parseISO(d));
   const pattern = getWorkerPatternForDate(name, d);
   const normalRaw = pattern ? pattern[wd] : null;
-  if(normalRaw && dov.endOverride && !dov.startOverride){
+  const esFestivo = !!festivoOn(d) || isFestivoEspecialDate(d);
+  const esJEoFestivo = esFestivo || (dov.marks && dov.marks.je);
+  if(!esJEoFestivo && normalRaw && (dov.startOverride || dov.endOverride)){
     const np = parseShiftString(normalRaw);
-    const p = dov.endOverride.split(':').map(Number);
-    let eMin = p[0]*60+(p[1]||0);
-    let normalEnd = np.endMin;
-    if(np.startMin!=null && normalEnd<=np.startMin) normalEnd+=1440;
-    if(eMin<=np.startMin) eMin+=1440;
-    if(normalEnd!=null && eMin>normalEnd) horas += (eMin-normalEnd)/60;
+    if(np.startMin!=null && np.endMin!=null){
+      const toMin = (str, fallbackMin) => {
+        if(!str) return fallbackMin;
+        const p = str.split(':').map(Number);
+        return p[0]*60+(p[1]||0);
+      };
+      let sMin = toMin(dov.startOverride, np.startMin);
+      let eMin = toMin(dov.endOverride, np.endMin%1440);
+      if(eMin<=sMin) eMin+=1440;
+      const actualDur = eMin - sMin;
+      if(actualDur>np.durationMin) horas += (actualDur-np.durationMin)/60;
+    }
   }
   if(dov.extraManual && dov.extraManual.horas>0) horas += dov.extraManual.horas;
   return horas;
@@ -2875,11 +2921,7 @@ function workerDayLcInfo(name, dateStr){
 function isHighlightedDay(dateStr){
   const wd = weekdayKey(parseISO(dateStr));
   if(STATE.ui.anWorker){
-    for(const b of allBlocks()){
-      if(dateStr<b.start||dateStr>b.end) continue;
-      const w = b.workers.find(x=>x.name===STATE.ui.anWorker);
-      if(w && w.pattern[wd]) return true;
-    }
+    if(getEffectiveDayRaw(STATE.ui.anWorker, dateStr).raw) return true;
   }
   if(STATE.ui.anTurno){
     for(const b of allBlocks()){
@@ -2930,11 +2972,14 @@ function renderAnual(){
       const hl = isHighlightedDay(dateStr);
       const absCode = STATE.ui.anWorker ? workerDayAbsenceCode(STATE.ui.anWorker, dateStr) : null;
       const lcInfo = STATE.ui.anWorker ? workerDayLcInfo(STATE.ui.anWorker, dateStr) : null;
+      const extraHoras = STATE.ui.anWorker ? dayProlongacionHoras(STATE.ui.anWorker, dateStr) : 0;
+      const festivoWork = lcInfo && lcInfo.tipo==='Festivo';
       const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
       const inRange = rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
       const style = fest?` style="--h-color:var(--festivo)"`:'';
       const dayTitle = fest ? fest.name : (lcInfo ? lcInfo.label : d+' de '+MESES_NOMBRE[m]);
-      gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''}" data-date="${dateStr}" title="${dayTitle}"${style}>${d}${lcInfo?`<span class="lc-dot lc-${lcInfo.lc.toLowerCase()}"></span>`:''}</div>`;
+      const marker = festivoWork ? '' : (lcInfo ? `<span class="lc-dot lc-${lcInfo.lc.toLowerCase()}"></span>` : (extraHoras>0 ? `<span class="lc-dot extra-dot"></span>` : ''));
+      gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${festivoWork?'festivo-work festivo-work-'+lcInfo.lc.toLowerCase():''}" data-date="${dateStr}" title="${dayTitle}"${style}><span class="daynum">${d}</span>${marker}</div>`;
     }
     html += `<div class="an-month"><h4>${MESES_NOMBRE[m]}</h4><div class="an-grid">${gh}</div></div>`;
   }
@@ -3358,6 +3403,16 @@ function formatFechasAgrupadas(fechas){
   if(!fechas.length) return '—';
   return agruparFechasConsecutivas(fechas).map(g=> g.start===g.end ? fmtDMY(g.start) : `${fmtDMY(g.start)} → ${fmtDMY(g.end)}`).join(', ');
 }
+function hrChipsHTML(items, signo){
+  if(!items.length) return '—';
+  return `<div class="hr-chips">${items.map(x=>{
+    const tag = x.tipo==='Festivo librado' ? 'FEST' : x.tipo==='JE librada' ? 'JE' : '';
+    return `<span class="hr-chip" ${x.tipo?`title="${x.tipo}"`:''}>${fmtDMY2(x.date)} ${signo}${x.horas}h${tag?` <span class="tag">${tag}</span>`:''}</span>`;
+  }).join('')}</div>`;
+}
+const HORAS_POR_DIA = 8;
+function diasAHorasStr(dias){ return `${Math.round(dias*HORAS_POR_DIA*10)/10}h`; }
+function horasADiasStr(horas){ return `${Math.round(horas/HORAS_POR_DIA*10)/10}d`; }
 function renderPlBalances(){
   const el = document.getElementById('pl-balances');
   const name = STATE.ui.anWorker;
@@ -3389,8 +3444,9 @@ function renderPlBalances(){
     <div class="statcard">
       <div class="l">LIBRE DISPOSICIÓN</div>
       <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:50px;"> días</div>
-      <div class="muted" style="font-size:11px;">Gastado: ${ldGastadoDias}d</div>
+      <div class="muted" style="font-size:11px;">Gastado: ${ldGastadoDias}d (${diasAHorasStr(ldGastadoDias)})</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${ldSaldoDias<0?'var(--danger)':'var(--local)'}">${ldSaldoDias}d</div>
+      <div class="muted" style="font-size:11px;">≈ ${diasAHorasStr(ldSaldoDias)}</div>
       <div class="l">SALDO</div>
     </div>
     <div class="statcard">
@@ -3404,6 +3460,7 @@ function renderPlBalances(){
       </div>
       <div class="muted" style="font-size:11px;">+ Gastado auto: ${bolsaGastadoAuto}h</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${bolsaSaldoHoras<0?'var(--danger)':'var(--local)'}">${bolsaSaldoHoras}h</div>
+      <div class="muted" style="font-size:11px;">≈ ${horasADiasStr(bolsaSaldoHoras)}</div>
       <div class="l">SALDO</div>
     </div>
   </div>
@@ -3418,9 +3475,9 @@ function renderPlBalances(){
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">Horas de bolsa disfrutadas</div>
-      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${bolsaGastadoFechas.length?bolsaGastadoFechas.map(x=>`${fmtDMY(x.date)}: ${x.horas}h`).join(', '):'—'}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;">${hrChipsHTML(bolsaGastadoFechas, '-')}</div>
       <div class="l" style="margin-top:8px;">Horas de bolsa generadas</div>
-      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${bolsaGeneradoFechas.length?bolsaGeneradoFechas.map(x=>`${fmtDMY(x.date)}: +${x.horas}h (${x.tipo})`).join(', '):'—'}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;">${hrChipsHTML(bolsaGeneradoFechas, '+')}</div>
     </div>
   </div>
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));">
