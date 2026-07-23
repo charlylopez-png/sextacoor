@@ -124,6 +124,7 @@ button.small{padding:3px 8px;font-size:11.5px;}
 .cal-day.abs-ld{--abs-color:#f472b6;}
 .cal-day.abs-hm,.cal-day.abs-bj{--abs-color:#f5d442;}
 .cal-day.abs-per{--abs-color:#c084fc;}
+.cal-day.abs-libre_horas{--abs-color:#38bdf8;}
 .cal-day .lc-mark{position:absolute;bottom:6px;right:6px;font-size:8.5px;font-weight:700;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0d0d12;}
 .cal-day .lc-mark.lc-l{background:#22d3ee;}
 .cal-day .lc-mark.lc-c{background:#fbbf24;}
@@ -190,6 +191,7 @@ tr:hover td{background:var(--panel-alt);}
 .an-day.abs-hm,.an-day.abs-bj{background:#f5d442;}
 .an-day.abs-per{background:#c084fc;}
 .an-day.abs-libre{background:#8b93a1;}
+.an-day.abs-libre_horas{background:#38bdf8;}
 .an-day.empty{background:transparent;cursor:default;}
 @media (max-width:1100px){.an-months{grid-template-columns:repeat(2,1fr);}}
 
@@ -341,7 +343,7 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
         <div class="legend">
           <span><i class="dot" style="background:#f5d442;"></i>Baja / horas médico</span>
           <span><i class="dot" style="background:#f2994a;"></i>Vacaciones</span>
-          <span><i class="dot" style="background:#f472b6;"></i>Libre horas (bolsa)</span>
+          <span><i class="dot" style="background:#f472b6;"></i>Horas sueltas (LD/bolsa)</span>
           <span><i class="dot" style="background:#f5a623;"></i>Prolongación (Hr+)</span>
           <span><i class="dot" style="background:#e619c9;"></i>Horas sindicales</span>
           <span><i class="dot" style="background:transparent;border:1px solid var(--border);"></i>En turno</span>
@@ -474,6 +476,35 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
         <div class="controls" style="margin-bottom:14px;">
           <input type="text" id="fi-new-name" placeholder="Nombre del nuevo operador…" style="width:220px;">
           <button id="fi-add-worker" class="primary">+ Añadir operador</button>
+        </div>
+        <div class="panel" style="margin-bottom:16px;">
+          <h4 style="font-size:12.5px;margin-bottom:8px;">Exportar listado de operadores</h4>
+          <p class="note" style="margin-bottom:8px;">Elige qué datos incluir y exporta el listado de las fichas.</p>
+          <div class="controls" id="fi-export-fields" style="flex-wrap:wrap;gap:10px;">
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="dni" checked style="width:auto;">DNI</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="telTrab" checked style="width:auto;">Tel. trabajo</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="telPart" checked style="width:auto;">Tel. particular</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="email" checked style="width:auto;">Email</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="dir" style="width:auto;">Dirección</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="cp" style="width:auto;">CP</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="municipio" style="width:auto;">Municipio</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="comunidad" style="width:auto;">Comunidad</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="categ" style="width:auto;">Categoría</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="ss" style="width:auto;">Nº SS</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="contrato" style="width:auto;">Contrato</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="alta" style="width:auto;">Fecha alta</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="fechaNac" style="width:auto;">F. nacimiento</label>
+            <label style="font-size:11.5px;display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="fi-exp-f" value="caducidadDni" style="width:auto;">Caducidad DNI</label>
+          </div>
+          <div class="controls" style="margin-top:10px;">
+            <select id="fi-export-scope">
+              <option value="activos">Solo activos</option>
+              <option value="bajas">Solo bajas</option>
+              <option value="todos">Todos</option>
+            </select>
+            <button id="fi-export-xlsx">⬇ Exportar Excel</button>
+            <button id="fi-export-pdf">⬇ Exportar PDF</button>
+          </div>
         </div>
         <div id="fi-grid" class="statgrid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));margin-bottom:16px;"></div>
         <div id="fi-editor"></div>
@@ -1495,7 +1526,9 @@ function getEffectiveDayRaw(name, dateStr){
   const rotationRaw = pattern ? (pattern[wd]||null) : null;
   const dov = getDayOverride(name, dateStr);
   if(dov){
-    if(dov.ocup && dov.ocup!=='WORK') return {raw:null, absence:dov.ocup, marks:dov.marks||{}, lc:dov.lc||null};
+    // LIBRE = día libre por cambio de turno con un compañero: el hueco se cubre igual,
+    // así que la casilla debe seguir mostrando el turno de origen (no es una ausencia real).
+    if(dov.ocup && dov.ocup!=='WORK' && dov.ocup!=='LIBRE') return {raw:null, absence:dov.ocup, marks:dov.marks||{}, lc:dov.lc||null};
     let raw = dov.turnoRaw || rotationRaw;
     if(!raw && dov.startOverride && dov.endOverride){ raw = `${dov.startOverride}-${dov.endOverride}`; }
     return {raw, absence:null, marks:dov.marks||{}, lc:dov.lc||null};
@@ -1860,6 +1893,7 @@ function ocupLabelAndColor(ocup){
   if(ocup==='PER') return {label:'PERMISO', color:'#f472b6'};
   if(ocup==='FESTIVO') return {label:'FESTIVO — NO VIENE', color:'#6b7280'};
   if(ocup==='LIBRE') return {label:'LIBRE', color:'#8b93a1'};
+  if(ocup==='LIBRE_HORAS') return {label:'LIBRE POR HORAS (bolsa)', color:'#38bdf8'};
   return {label:ocup, color:'#8b93a1'};
 }
 function renderCuadranteDiario(){
@@ -1888,8 +1922,7 @@ function renderCuadranteDiario(){
   workers.forEach(w=>{
     const dov = getDayOverride(w.name, dateStr);
     if(dov && dov.hidden) return; // quitado manualmente de este día
-    if(dov && dov.ocup && dov.ocup!=='WORK'){
-      if(dov.ocup==='LIBRE') return;
+    if(dov && dov.ocup && dov.ocup!=='WORK' && dov.ocup!=='LIBRE'){
       rows.push({name:w.name, kind:'absence', ocup:dov.ocup, startMin:0, endMin:24*60, dov});
       return;
     }
@@ -1985,13 +2018,15 @@ function renderCuadranteDiario(){
         const mEnd = mStart + medico.horas*60;
         extraSegHTML += `<div class="gantt-bar gantt-seg gantt-subseg" style="left:${pctOf(mStart)}%;width:${Math.max(0.4,pctOf(mEnd)-pctOf(mStart))}%;background:${MEDICO_COLOR};color:#241a04;" title="Horas médico: ${medico.horas}h desde ${medico.inicio}">🏥${medico.horas}h</div>`;
       }
-      // segmento libre disposición dentro del turno
-      if(libreDisp && libreDisp.horas>0 && libreDisp.inicio){
-        const p = libreDisp.inicio.split(':').map(Number);
-        const lStart = p[0]*60+(p[1]||0);
-        const lEnd = lStart + libreDisp.horas*60;
-        extraSegHTML += `<div class="gantt-bar gantt-seg gantt-subseg" style="left:${pctOf(lStart)}%;width:${Math.max(0.4,pctOf(lEnd)-pctOf(lStart))}%;background:${LIBRE_COLOR};color:#241a04;" title="Libre disposición: ${libreDisp.horas}h desde ${libreDisp.inicio}">🕐${libreDisp.horas}h</div>`;
-      }
+      // segmento(s) de horas sueltas dentro del turno — puede haber tramo de LD y de bolsa el mismo día
+      [{item: libreDisp && libreDisp.ld, tag:'LD'}, {item: libreDisp && libreDisp.bolsa, tag:'Bolsa horas'}].forEach(({item,tag})=>{
+        if(item && item.horas>0 && item.inicio){
+          const p = item.inicio.split(':').map(Number);
+          const lStart = p[0]*60+(p[1]||0);
+          const lEnd = lStart + item.horas*60;
+          extraSegHTML += `<div class="gantt-bar gantt-seg gantt-subseg" style="left:${pctOf(lStart)}%;width:${Math.max(0.4,pctOf(lEnd)-pctOf(lStart))}%;background:${LIBRE_COLOR};color:#241a04;" title="${tag}: ${item.horas}h desde ${item.inicio}">🕐${item.horas}h</div>`;
+        }
+      });
       // segmento horas sindicales (tramo, si no ocupa todo el turno)
       if(sindical && !sindical.todoElTurno && sindical.horas>0 && sindical.inicio){
         const p = sindical.inicio.split(':').map(Number);
@@ -2140,7 +2175,8 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
   const marks = dov.marks || {};
   const medico = dov.medico || {horas:0, inicio:''};
   const extraManual = dov.extraManual || {horas:0};
-  const libreDisp = dov.libreDisp || {horas:0, inicio:''};
+  const libreLD = (dov.libreDisp && dov.libreDisp.ld) || {horas:0, inicio:''};
+  const libreBolsa = (dov.libreDisp && dov.libreDisp.bolsa) || {horas:0, inicio:''};
   const sindical = dov.sindical || {horas:0, inicio:'', todoElTurno:false};
   const tr = dov.tr || 0;
   const dieta = dov.dieta || '';
@@ -2171,6 +2207,7 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
             <option value="PER" ${dov.ocup==='PER'?'selected':''}>PER — Permiso</option>
             <option value="FESTIVO" ${dov.ocup==='FESTIVO'?'selected':''}>FESTIVO — No viene (deja constancia)</option>
             <option value="LIBRE" ${dov.ocup==='LIBRE'?'selected':''}>LIBRE — Día libre por turno (cambio con compañero / quita JE, L-C y extras)</option>
+            <option value="LIBRE_HORAS" ${dov.ocup==='LIBRE_HORAS'?'selected':''}>LIBRE POR HORAS — Día librado con horas de la bolsa</option>
           </select>
         </div>
         <div class="modal-row">
@@ -2216,10 +2253,16 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
           </div>
         </div>
         <div class="modal-row gm-extra" style="background:rgba(244,114,182,.07);border-color:rgba(244,114,182,.3);">
-          <label>🕐 Libre disp.</label>
-          <div style="display:flex;gap:8px;">
-            <input type="number" min="0" step="0.5" id="gm-libre-h" value="${libreDisp.horas||0}" style="width:52px;" placeholder="h">
-            <input type="time" id="gm-libre-i" value="${libreDisp.inicio||''}" style="flex:1;">
+          <label>🕐 Horas sueltas <span style="font-weight:400;color:var(--muted);">— se pueden combinar LD + bolsa el mismo día</span></label>
+          <div style="display:flex;gap:6px;align-items:center;min-width:0;margin-bottom:6px;">
+            <span style="font-size:10px;color:var(--muted);width:34px;flex-shrink:0;">LD</span>
+            <input type="number" min="0" step="0.5" id="gm-libre-ld-h" value="${libreLD.horas||0}" style="width:48px;flex-shrink:0;" placeholder="h">
+            <input type="time" id="gm-libre-ld-i" value="${libreLD.inicio||''}" style="flex:1;min-width:0;">
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;min-width:0;">
+            <span style="font-size:10px;color:var(--muted);width:34px;flex-shrink:0;">Bolsa</span>
+            <input type="number" min="0" step="0.5" id="gm-libre-bolsa-h" value="${libreBolsa.horas||0}" style="width:48px;flex-shrink:0;" placeholder="h">
+            <input type="time" id="gm-libre-bolsa-i" value="${libreBolsa.inicio||''}" style="flex:1;min-width:0;">
           </div>
         </div>
         <div class="modal-row gm-extra" style="background:rgba(230,25,201,.07);border-color:rgba(230,25,201,.3);">
@@ -2245,7 +2288,7 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
           </div>
         </div>
         <div class="modal-row gm-extra" style="background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.35);">
-          <label>L / C — Jornada extra (JE) o festivo trabajado <span style="font-weight:400;color:var(--muted);">JE librada = 1,5d (12h) · Festivo/FSP librado = 1,75d (14h) a la bolsa</span></label>
+          <label>L / C — Jornada extra (JE) o festivo trabajado <span style="font-weight:400;color:var(--muted);">Librado: (horas del turno + extra) × 1,5 (JE) o × 1,75 (festivo/FSP) a la bolsa</span></label>
           <select id="gm-lc" style="width:100%;">
             <option value="" ${!curLc?'selected':''}>— No aplica</option>
             <option value="C" ${curLc==='C'?'selected':''}>C — Cobrar</option>
@@ -2358,7 +2401,10 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
     ['je','lu','pv','pvsp','hmt'].forEach(m=>{ marks[m] = document.getElementById('gm-mk-'+m).checked; });
     const medico = { horas: parseFloat(document.getElementById('gm-medico-h').value||0), inicio: document.getElementById('gm-medico-i').value||'' };
     const extraManual = { horas: parseFloat(document.getElementById('gm-extra-h').value||0) };
-    const libreDisp = { horas: parseFloat(document.getElementById('gm-libre-h').value||0), inicio: document.getElementById('gm-libre-i').value||'' };
+    const libreDisp = {
+      ld: { horas: parseFloat(document.getElementById('gm-libre-ld-h').value||0), inicio: document.getElementById('gm-libre-ld-i').value||'' },
+      bolsa: { horas: parseFloat(document.getElementById('gm-libre-bolsa-h').value||0), inicio: document.getElementById('gm-libre-bolsa-i').value||'' }
+    };
     const sindTodo = document.getElementById('gm-sind-todo').checked;
     const sindical = { horas: parseFloat(document.getElementById('gm-sind-h').value||0), inicio: document.getElementById('gm-sind-i').value||'', todoElTurno: sindTodo };
     const tr = parseInt(document.getElementById('gm-tr').value||0);
@@ -2384,7 +2430,7 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
         marks,
         medico: medico.horas>0 ? medico : null,
         extraManual: extraManual.horas>0 ? extraManual : null,
-        libreDisp: libreDisp.horas>0 ? libreDisp : null,
+        libreDisp: (libreDisp.ld.horas>0 || libreDisp.bolsa.horas>0) ? libreDisp : null,
         sindical: (sindTodo || sindical.horas>0) ? sindical : null,
         tr, dieta, hidden,
         lc
@@ -2563,6 +2609,68 @@ function allFichaNames(){
     extra: extra.sort((a,b)=>a.localeCompare(b,'es')).map(n=>({name:n, prods:[], active:true, extra:true}))
   };
 }
+const FI_EXPORT_FIELDS = [
+  {k:'dni', l:'DNI'}, {k:'telTrab', l:'Tel. trabajo'}, {k:'telPart', l:'Tel. particular'}, {k:'email', l:'Email'},
+  {k:'dir', l:'Dirección'}, {k:'cp', l:'CP'}, {k:'municipio', l:'Municipio'}, {k:'comunidad', l:'Comunidad'},
+  {k:'categ', l:'Categoría'}, {k:'ss', l:'Nº SS'}, {k:'contrato', l:'Contrato'}, {k:'alta', l:'Fecha alta'},
+  {k:'fechaNac', l:'F. nacimiento'}, {k:'caducidadDni', l:'Caducidad DNI'}
+];
+function fiExportRows(){
+  const scope = document.getElementById('fi-export-scope').value;
+  const {rotation, extra} = allFichaNames();
+  let all = [...rotation, ...extra];
+  if(scope==='activos') all = all.filter(w=>w.active);
+  else if(scope==='bajas') all = all.filter(w=>!w.active);
+  all = all.sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  const selected = Array.from(document.querySelectorAll('.fi-exp-f:checked')).map(c=>c.value);
+  const cols = FI_EXPORT_FIELDS.filter(c=>selected.includes(c.k));
+  return { cols, rows: all.map(w=>({name:w.name, f:getFicha(w.name)})) };
+}
+document.getElementById('fi-export-xlsx').addEventListener('click', ()=>{
+  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const { cols, rows } = fiExportRows();
+    if(!rows.length){ alert('No hay operadores para exportar.'); return; }
+    const header = ['Nombre', ...cols.map(c=>c.l)];
+    const aoa = [header, ...rows.map(({name,f})=>[name, ...cols.map(c=>f[c.k]||'')])];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{wch:26}, ...cols.map(()=>({wch:18}))];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Operadores');
+    const today = new Date();
+    XLSX.writeFile(wb, `operadores_${fmtISO(today.getFullYear(), today.getMonth()+1, today.getDate())}.xlsx`);
+  }catch(e){
+    alert('No se pudo generar el Excel: ' + e.message);
+  }
+});
+document.getElementById('fi-export-pdf').addEventListener('click', ()=>{
+  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const { cols, rows } = fiExportRows();
+    if(!rows.length){ alert('No hay operadores para exportar.'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation: cols.length>4 ? 'landscape' : 'portrait'});
+    const today = new Date();
+    const todayISO = fmtISO(today.getFullYear(), today.getMonth()+1, today.getDate());
+    doc.setFontSize(16);
+    doc.text('Listado de operadores', 14, 16);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${fmtDMY(todayISO)}`, 14, 23);
+    const head = [['Nombre', ...cols.map(c=>c.l)]];
+    const body = rows.map(({name,f})=>[name, ...cols.map(c=>f[c.k]||'')]);
+    doc.autoTable({
+      head, body, startY: 28, theme:'grid',
+      headStyles:{ fillColor:[34,197,94], textColor:255, fontStyle:'bold' },
+      alternateRowStyles:{ fillColor:[245,247,250] },
+      styles:{ fontSize:8.5, cellPadding:3 },
+      columnStyles:{ 0:{fontStyle:'bold'} }
+    });
+    doc.save(`operadores_${todayISO}.pdf`);
+  }catch(e){
+    alert('No se pudo generar el PDF: ' + e.message);
+  }
+});
 function renderFichas(){
   const grid = document.getElementById('fi-grid');
   const {rotation, extra} = allFichaNames();
@@ -2777,13 +2885,21 @@ function dayProlongacionHoras(name, d, dov){
   if(dov.extraManual && dov.extraManual.horas>0) horas += dov.extraManual.horas;
   return horas;
 }
+const COEF_FESTIVO_LIBRADO = 1.75;
+const COEF_JE_LIBRADA = 1.5;
+// Horas que van a la bolsa al librar un festivo (1,75x) o una JE (1,5x): el coeficiente se aplica
+// a las horas reales de ese turno (netas de descanso, como el resto de cálculos de horas) MÁS
+// cualquier hora extra manual de ese día — no es un valor fijo por jornada.
 function diaLibradoBolsaHoras(name, d, dov){
   dov = dov || getDayOverride(name, d);
   if(!dov || dov.lc!=='L' || (dov.ocup && dov.ocup!=='WORK')) return 0;
   const esFestivo = !!festivoOn(d) || isFestivoEspecialDate(d);
-  if(esFestivo) return 14;
-  if(dov.marks && dov.marks.je) return 12;
-  return 0;
+  const esJE = !!(dov.marks && dov.marks.je);
+  if(!esFestivo && !esJE) return 0;
+  const coef = esFestivo ? COEF_FESTIVO_LIBRADO : COEF_JE_LIBRADA;
+  const turnoHoras = dayScheduledHoras(name, d);
+  const extraHoras = dayProlongacionHoras(name, d, dov);
+  return Math.round((turnoHoras + extraHoras) * coef * 1000) / 1000;
 }
 function workerYtdSummary(name){
   const {start, end, year} = ytdRange();
@@ -2901,7 +3017,7 @@ function isDateInVacOrLibre(name, dateStr){
 }
 function workerDayAbsenceCode(name, dateStr){
   const dov = getDayOverride(name, dateStr);
-  if(dov && dov.ocup && dov.ocup!=='WORK') return dov.ocup;
+  if(dov && dov.ocup && dov.ocup!=='WORK' && dov.ocup!=='LIBRE') return dov.ocup;
   const data = STATE.vacaciones[name];
   if(data){
     if((data.libres||[]).includes(dateStr)) return 'LD';
@@ -3093,6 +3209,7 @@ function renderAnDayEditor(){
           <option value="BJ" ${ocup==='BJ'?'selected':''}>BJ — Baja</option>
           <option value="PER" ${ocup==='PER'?'selected':''}>PER — Permiso</option>
           <option value="LIBRE" ${ocup==='LIBRE'?'selected':''}>LIBRE — Día libre sin más</option>
+          <option value="LIBRE_HORAS" ${ocup==='LIBRE_HORAS'?'selected':''}>LIBRE POR HORAS — descuenta de la bolsa</option>
         </select>
       </label>
       <label class="muted" style="font-size:11.5px;">Turno tipo<br>
@@ -3367,10 +3484,17 @@ function bolsaGeneradaFechas(name){
   const out = [];
   Object.keys(dov).sort().forEach(d=>{
     const o = dov[d];
-    const prol = Math.round(dayProlongacionHoras(name, d, o)*10)/10;
-    if(prol>0) out.push({date:d, horas:prol, tipo:'Prolongación / Hr+'});
+    const esFestivo = !!festivoOn(d) || isFestivoEspecialDate(d);
+    const esJE = !!(o && o.marks && o.marks.je);
+    // si se libra festivo/JE, las horas extra de ese día ya van incluidas dentro del cálculo
+    // con coeficiente de diaLibradoBolsaHoras — no se cuentan aparte como Hr+ (se duplicarían).
+    const libradoConCoef = o && o.lc==='L' && (esFestivo || esJE);
+    if(!libradoConCoef){
+      const prol = Math.round(dayProlongacionHoras(name, d, o)*10)/10;
+      if(prol>0) out.push({date:d, horas:prol, tipo:'Prolongación / Hr+'});
+    }
     const lib = diaLibradoBolsaHoras(name, d, o);
-    if(lib>0) out.push({date:d, horas:lib, tipo: lib===14?'Festivo librado':'JE librada'});
+    if(lib>0) out.push({date:d, horas:lib, tipo: esFestivo?'Festivo librado':'JE librada'});
   });
   return out;
 }
@@ -3382,9 +3506,22 @@ function bolsaGastadaFechas(name){
   const out = [];
   Object.keys(dov).sort().forEach(d=>{
     const o = dov[d];
-    if(o && o.libreDisp && o.libreDisp.horas>0) out.push({date:d, horas:o.libreDisp.horas});
+    if(o && o.ocup==='LIBRE_HORAS') out.push({date:d, horas: dayScheduledHoras(name,d), tipo:'Librado por horas'});
+    if(o && o.libreDisp && o.libreDisp.bolsa && o.libreDisp.bolsa.horas>0) out.push({date:d, horas:o.libreDisp.bolsa.horas});
   });
   return out;
+}
+function ldSueltasFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const out = [];
+  Object.keys(dov).sort().forEach(d=>{
+    const o = dov[d];
+    if(o && o.libreDisp && o.libreDisp.ld && o.libreDisp.ld.horas>0) out.push({date:d, horas:o.libreDisp.ld.horas});
+  });
+  return out;
+}
+function ldSueltasHoras(name){
+  return Math.round(ldSueltasFechas(name).reduce((s,x)=>s+x.horas,0)*10)/10;
 }
 function bolsaGastadaAutoHoras(name){
   return Math.round(bolsaGastadaFechas(name).reduce((s,x)=>s+x.horas,0)*10)/10;
@@ -3399,9 +3536,18 @@ function agruparFechasConsecutivas(fechas){
   });
   return grupos;
 }
-function formatFechasAgrupadas(fechas){
+function fmtDMYShort(dateStr){ if(!dateStr) return ''; const [y,m,d]=dateStr.split('-').map(Number); return `${d}/${m}/${String(y).slice(2)}`; }
+// Cápsulas compactas de días disfrutados, agrupando días consecutivos y mostrando las horas
+// reales de ese/esos día(s) (mismo cálculo que el saldo de LD) en vez de una lista de fechas en texto.
+function diasChipsHTML(name, fechas){
   if(!fechas.length) return '—';
-  return agruparFechasConsecutivas(fechas).map(g=> g.start===g.end ? fmtDMY(g.start) : `${fmtDMY(g.start)} → ${fmtDMY(g.end)}`).join(', ');
+  return `<div class="hr-chips">${agruparFechasConsecutivas(fechas).map(g=>{
+    let horas = 0, d = g.start, guard = 0;
+    while(d<=g.end && guard<400){ horas += dayScheduledHoras(name, d); d = addDaysStr(d,1); guard++; }
+    horas = Math.round(horas*10)/10;
+    const label = g.start===g.end ? fmtDMYShort(g.start) : `${fmtDMYShort(g.start)}→${fmtDMYShort(g.end)}`;
+    return `<span class="hr-chip" title="${g.start===g.end?fmtDMY(g.start):fmtDMY(g.start)+' → '+fmtDMY(g.end)}">${horas}h·${label}</span>`;
+  }).join('')}</div>`;
 }
 function hrChipsHTML(items, signo){
   if(!items.length) return '—';
@@ -3413,6 +3559,19 @@ function hrChipsHTML(items, signo){
 const HORAS_POR_DIA = 8;
 function diasAHorasStr(dias){ return `${Math.round(dias*HORAS_POR_DIA*10)/10}h`; }
 function horasADiasStr(horas){ return `${Math.round(horas/HORAS_POR_DIA*10)/10}d`; }
+// Horas reales que ese día le habría tocado trabajar (según su patrón/manualOverride vigente esa fecha,
+// descontando el descanso configurado en patternCatalog) — no todos los días valen 8h fijas.
+// Si ese día de la semana no tiene turno en el patrón (p.ej. fin de semana libre) son 0h reales;
+// el fallback de 8h solo se usa si no hay ningún patrón asignado para esa fecha (sin datos).
+function dayScheduledHoras(name, dateStr){
+  const wd = weekdayKey(parseISO(dateStr));
+  const pattern = getWorkerPatternForDate(name, dateStr);
+  if(!pattern) return HORAS_POR_DIA;
+  return dayNetHours(pattern, wd);
+}
+function ldDiasGastadoHoras(name){
+  return Math.round(ldDisfrutadasFechas(name).reduce((s,d)=>s+dayScheduledHoras(name,d),0)*10)/10;
+}
 function renderPlBalances(){
   const el = document.getElementById('pl-balances');
   const name = STATE.ui.anWorker;
@@ -3424,6 +3583,12 @@ function renderPlBalances(){
   const ldFechas = ldDisfrutadasFechas(name);
   const ldGastadoDias = ldFechas.length;
   const ldSaldoDias = bal.ldInicialDias - ldGastadoDias;
+  const ldDiasHoras = ldDiasGastadoHoras(name);
+  const ldSueltasFecha = ldSueltasFechas(name);
+  const ldSueltasH = ldSueltasHoras(name);
+  const ldGastadoHorasTotal = Math.round((ldDiasHoras + ldSueltasH)*10)/10;
+  const ldTotalHoras = bal.ldInicialDias * HORAS_POR_DIA;
+  const ldSaldoHoras = Math.round((ldTotalHoras - ldGastadoHorasTotal)*10)/10;
   const bolsaGeneradoFechas = bolsaGeneradaFechas(name);
   const bolsaGeneradoAuto = bolsaGeneradaAutoHoras(name);
   const bolsaGastadoFechas = bolsaGastadaFechas(name);
@@ -3444,9 +3609,9 @@ function renderPlBalances(){
     <div class="statcard">
       <div class="l">LIBRE DISPOSICIÓN</div>
       <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:50px;"> días</div>
-      <div class="muted" style="font-size:11px;">Gastado: ${ldGastadoDias}d (${diasAHorasStr(ldGastadoDias)})</div>
+      <div class="muted" style="font-size:11px;">Gastado: ${ldGastadoDias}d completo(s) = ${ldDiasHoras}h${ldSueltasH>0?` + ${ldSueltasH}h sueltas`:''}</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${ldSaldoDias<0?'var(--danger)':'var(--local)'}">${ldSaldoDias}d</div>
-      <div class="muted" style="font-size:11px;">≈ ${diasAHorasStr(ldSaldoDias)}</div>
+      <div class="muted" style="font-size:11px;">≈ ${ldSaldoHoras}h de ${ldTotalHoras}h</div>
       <div class="l">SALDO</div>
     </div>
     <div class="statcard">
@@ -3467,11 +3632,12 @@ function renderPlBalances(){
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(3,1fr);">
     <div class="statcard" style="padding:10px;">
       <div class="l">Días de vacaciones disfrutados</div>
-      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${formatFechasAgrupadas(vacFechas)}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;">${diasChipsHTML(name, vacFechas)}</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">Días de LD disfrutados</div>
-      <div class="muted" style="font-size:11px;margin-top:6px;line-height:1.5;">${formatFechasAgrupadas(ldFechas)}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;">${diasChipsHTML(name, ldFechas)}</div>
+      ${ldSueltasH>0?`<div class="l" style="margin-top:8px;">Horas sueltas de LD</div><div class="muted" style="font-size:11px;margin-top:6px;">${hrChipsHTML(ldSueltasFecha, '-')}</div>`:''}
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">Horas de bolsa disfrutadas</div>
