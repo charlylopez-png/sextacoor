@@ -175,6 +175,7 @@ tr:hover td{background:var(--panel-alt);}
 .an-badge{font-size:6px;}
 .an-badge.circle{width:8px;height:8px;border-radius:50%;background:#fbbf24;color:#000;font-weight:800;font-size:3px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:-.3px;}
 .an-badge.circle.pvsp{border:1px solid #000;}
+.an-badge.circle.extra{width:10px;height:10px;background:#f5a623;color:#000;font-size:6.5px;}
 .an-day:hover{outline:1px solid var(--text);}
 .an-day.festivo-work{box-shadow:0 0 0 3px #15803d inset;}
 .an-day.festivo-work .daynum{font-weight:800;position:relative;z-index:1;}
@@ -2105,7 +2106,7 @@ function renderCuadranteDiario(){
     if(r.kind==='work' && fest) autoBadges.push(isFSP ? 'FSP' : 'F');
     if(r.kind==='work' && isPWE) autoBadges.push('PWE');
     const chipBadges = [];
-    if(effectiveTr>0) chipBadges.push(`🍽️×${effectiveTr}`);
+    if(effectiveTr>0) chipBadges.push(`TK${effectiveTr>1?`×${effectiveTr}`:''}`);
     if(dieta){ const d = DIETA_OPTS.find(o=>o.v===dieta); if(d) chipBadges.push(d.short); }
     if(sindical && sindical.todoElTurno) chipBadges.push('✊ SIND (turno completo)');
     const allBadges = [
@@ -3232,7 +3233,7 @@ function renderAnual(){
       if(marks.pv) badges.push('<span class="an-badge circle pv" title="+PV — Plus viaje">PV</span>');
       if(marks.pvsp) badges.push('<span class="an-badge circle pvsp" title="+PVSP — Plus viaje especial">PVSP</span>');
       if(marks.hmt) badges.push('<span class="an-badge" title="HMT — Plus herramienta">🔨</span>');
-      if(extraHoras>0) badges.push(`<span class="an-badge" title="Horas extra: +${Math.round(extraHoras*10)/10}h">🕐</span>`);
+      if(extraHoras>0) badges.push(`<span class="an-badge circle extra" title="Horas extra: +${Math.round(extraHoras*10)/10}h">H</span>`);
       const badgesHTML = badges.length ? `<div class="an-badges">${badges.join('')}</div>` : '';
       gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${fillClass}" data-date="${dateStr}" title="${dayTitle}"${style}>${badgesHTML}<span class="daynum">${d}</span></div>`;
     }
