@@ -2300,6 +2300,10 @@ function openGanttModal(name, dateStr, clickX, clickY, rangeEndStr){
             <option value="LIBRE_HORAS" ${dov.ocup==='LIBRE_HORAS'?'selected':''}>LIBRE POR HORAS — Día librado con horas de la bolsa</option>
           </select>
         </div>
+        <div class="modal-row" id="gm-permiso-obs-wrap" style="display:${dov.ocup==='PER'?'block':'none'};">
+          <label>Motivo del permiso</label>
+          <textarea id="gm-permiso-obs" rows="2" style="width:100%;resize:vertical;" placeholder="¿A qué se debe el permiso?">${dov.observaciones||''}</textarea>
+        </div>
         <div class="modal-row">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="gm-hidden" style="width:auto;" ${dov.hidden?'checked':''}> Quitar a esta persona de este día (no se muestra)</label>
         </div>
@@ -2460,6 +2464,9 @@ document.getElementById('gantt-modal').addEventListener('change', e=>{
     document.getElementById('gm-sind-h').disabled = on;
     document.getElementById('gm-sind-i').disabled = on;
   }
+  if(e.target.id==='gm-ocup'){
+    document.getElementById('gm-permiso-obs-wrap').style.display = e.target.value==='PER' ? 'block' : 'none';
+  }
   if(e.target.id==='gm-turno-select'){
     const sig = e.target.value ? decodeURIComponent(e.target.value) : '';
     if(sig){
@@ -2536,6 +2543,7 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
     const dieta = document.getElementById('gm-dieta').value;
     const hidden = document.getElementById('gm-hidden').checked;
     const lc = document.getElementById('gm-lc').value || null;
+    const permisoObs = document.getElementById('gm-permiso-obs').value.trim();
     if(!STATE.dayOverrides[name]) STATE.dayOverrides[name] = {};
     const rs = modal.dataset.rangeStart, re = modal.dataset.rangeEnd;
     const dateList = [];
@@ -2559,12 +2567,14 @@ document.getElementById('gantt-modal').addEventListener('click', async e=>{
         sindical: (sindTodo || sindical.horas>0) ? sindical : null,
         coberturas: coberturas.length ? coberturas : null,
         titulo: titulo || null,
+        observaciones: null,
         tr, dieta, hidden,
         lc
       } : {
         ocup, turnoRaw: null, startOverride: null, endOverride: null, color: null,
         marks: {je:false,lu:false,pv:false,pvsp:false,hmt:false},
         medico: null, extraManual: null, libreDisp: null, sindical: null, coberturas: null, titulo: null,
+        observaciones: ocup==='PER' ? (permisoObs||null) : null,
         tr: 0, dieta: '', hidden,
         lc: null
       };
@@ -3360,6 +3370,10 @@ function renderAnDayEditor(){
         <select id="ad-lc"><option value="">—</option><option value="L" ${existing.lc==='L'?'selected':''}>L — Librar</option><option value="C" ${existing.lc==='C'?'selected':''}>C — Cobrar</option></select>
       </label>
     </div>
+    <div class="modal-row" id="ad-permiso-obs-wrap" style="display:${ocup==='PER'?'block':'none'};margin-top:8px;">
+      <label class="muted" style="font-size:11.5px;">Motivo del permiso</label>
+      <textarea id="ad-permiso-obs" rows="2" style="width:100%;resize:vertical;" placeholder="¿A qué se debe el permiso?">${existing.observaciones||''}</textarea>
+    </div>
     <div class="controls" style="margin-top:8px;flex-wrap:wrap;">
       <span class="muted" style="font-size:10px;">MARCAS:</span>
       ${['je','lu','pv','pvsp','hmt'].map(m=>`<label style="font-size:10.5px;display:flex;align-items:center;gap:3px;cursor:pointer;"><input type="checkbox" id="ad-mk-${m}" ${marks[m]?'checked':''}> ${MARK_LABELS[m]||m.toUpperCase()}</label>`).join('')}
@@ -3372,6 +3386,9 @@ function renderAnDayEditor(){
   </div>`;
 }
 document.getElementById('an-day-editor').addEventListener('change', e=>{
+  if(e.target.id==='ad-ocup'){
+    document.getElementById('ad-permiso-obs-wrap').style.display = e.target.value==='PER' ? 'block' : 'none';
+  }
   if(e.target.id==='ad-turno-select'){
     const sig = e.target.value?decodeURIComponent(e.target.value):'';
     if(sig){
@@ -3410,6 +3427,7 @@ document.getElementById('an-day-editor').addEventListener('click', async e=>{
     const ocup = document.getElementById('ad-ocup').value;
     const turnoRaw = document.getElementById('ad-turno-raw').value.trim();
     const lc = document.getElementById('ad-lc').value;
+    const permisoObs = document.getElementById('ad-permiso-obs').value.trim();
     const marks = {};
     ['je','lu','pv','pvsp','hmt'].forEach(m=>{ marks[m] = document.getElementById('ad-mk-'+m).checked; });
     if(!STATE.dayOverrides[name]) STATE.dayOverrides[name] = {};
@@ -3419,7 +3437,7 @@ document.getElementById('an-day-editor').addEventListener('click', async e=>{
     while(d<=end && guard<400){
       STATE.dayOverrides[name][d] = isWork
         ? {ocup, turnoRaw: turnoRaw||null, marks, lc: lc||null}
-        : {ocup, turnoRaw: null, marks: {je:false,lu:false,pv:false,pvsp:false,hmt:false}, lc: null};
+        : {ocup, turnoRaw: null, marks: {je:false,lu:false,pv:false,pvsp:false,hmt:false}, lc: null, observaciones: ocup==='PER' ? (permisoObs||null) : null};
       d=addDaysStr(d,1); guard++;
     }
     await saveKey('dayOverrides', STATE.dayOverrides);
