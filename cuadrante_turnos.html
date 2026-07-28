@@ -205,6 +205,14 @@ tr:hover td{background:var(--panel-alt);}
 .an-day.empty{background:transparent;cursor:default;}
 @media (max-width:1100px){.an-months{grid-template-columns:repeat(2,1fr);}}
 
+.an-legend{display:flex;flex-wrap:wrap;gap:14px 26px;margin-bottom:16px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);}
+.an-legend-group{display:flex;flex-direction:column;gap:5px;}
+.an-legend-group h5{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted-2);margin:0 0 2px;font-weight:700;}
+.an-legend-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);white-space:nowrap;}
+.an-legend-swatch{width:18px;height:18px;aspect-ratio:unset;cursor:default;font-size:0;flex-shrink:0;}
+.an-legend-item .an-badge{position:static;flex-shrink:0;}
+.an-legend-item .an-badge.circle{width:12px;height:12px;font-size:4.5px;}
+
 .aliasbadge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
 .aliasbadge.manana{background:rgba(59,130,246,.16);color:var(--turno-manana);}
 .aliasbadge.tarde{background:rgba(242,153,74,.16);color:var(--turno-tarde);}
@@ -389,15 +397,48 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
       <div id="pl-gestor-embed"></div>
 
       <div id="pv-view-anual">
-        <div class="legend">
-          <span><i class="dot" style="background:var(--festivo);"></i>Festivo</span>
-          <span><i class="dot" style="background:var(--local);box-shadow:0 0 0 2px var(--local);"></i>Turno resaltado</span>
-          <span><i class="dot" style="background:#22d3ee;"></i>JE/festivo librado</span>
-          <span><i class="dot" style="background:#fbbf24;"></i>JE/festivo cobrado</span>
+        <div class="an-legend">
+          <div class="an-legend-group">
+            <h5>General</h5>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch holiday" style="--h-color:var(--festivo);"></span>Festivo</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch hl"></span>Turno resaltado</div>
+          </div>
+          <div class="an-legend-group">
+            <h5>Ausencia (día completo)</h5>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch abs abs-vac"></span>Vacaciones</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch abs abs-ld"></span>LD / Libre por horas</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch abs abs-hm"></span>Médico</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch abs abs-bj"></span>Baja</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch abs abs-per"></span>Permiso</div>
+          </div>
+          <div class="an-legend-group">
+            <h5>Jornada especial (día completo)</h5>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch je-full"></span>Jornada extra</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch sindical-full"></span>Sindical (turno completo)</div>
+          </div>
+          <div class="an-legend-group">
+            <h5>Festivo trabajado</h5>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch festivo-work festivo-work-l"></span>Librado</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch festivo-work festivo-work-c"></span>Cobrado</div>
+          </div>
+          <div class="an-legend-group">
+            <h5>Horas sueltas (banda)</h5>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch medico-suelto"></span>Médico</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch libre-suelto"></span>Bolsa / LD</div>
+            <div class="an-legend-item"><span class="an-day an-legend-swatch sindical-suelto"></span>Sindicales</div>
+          </div>
+          <div class="an-legend-group">
+            <h5>Distintivos arriba de la casilla</h5>
+            <div class="an-legend-item"><span class="an-badge circle extra">H</span>Horas extra</div>
+            <div class="an-legend-item"><span class="an-badge">📶</span>LiveU</div>
+            <div class="an-legend-item"><span class="an-badge circle pv">PV</span>Plus viaje</div>
+            <div class="an-legend-item"><span class="an-badge circle pvsp">PVSP</span>Plus viaje especial</div>
+            <div class="an-legend-item"><span class="an-badge">🔨</span>Plus herramienta</div>
+          </div>
         </div>
         <div id="an-months" class="an-months"></div>
         <div id="an-day-editor"></div>
-        <div id="an-report"></div>
+        <div id="an-informe-anual"></div>
       </div>
 
       <div id="pv-view-mensual" style="display:none;">
@@ -3251,33 +3292,7 @@ function renderAnual(){
   }
   document.getElementById('an-months').innerHTML = html;
   renderAnDayEditor();
-  renderAnReport();
-}
-function renderAnReport(){
-  const el = document.getElementById('an-report');
-  const name = STATE.ui.anWorker;
-  if(!name){ el.innerHTML=''; return; }
-  const year = STATE.ui.anualYear;
-  const festList = STATE.festivos[year]||[];
-  const dentro=[], fuera=[];
-  festList.forEach(f=>{
-    (wouldWorkByPattern(name, f.date) ? dentro : fuera).push(f);
-  });
-  const exc = STATE.holidayExceptions[name]||[];
-  let html = `<div class="panel"><h3>Informe de festivos — ${name} (${year})</h3>
-    <h4 style="font-size:12.5px;color:var(--muted);margin:10px 0 6px;">Festivos que le tocarían según su turno (libra por defecto, salvo excepción)</h4>`;
-  if(dentro.length===0) html += `<p class="muted" style="font-size:12.5px;">Ninguno.</p>`;
-  dentro.forEach(f=>{
-    const isExc = exc.includes(f.date);
-    html += `<div class="detail-row"><span>${fmtDMY(f.date)} — ${f.name}</span>
-      <span>${isExc?'<span class="aliasbadge completo">Trabajado</span> ':''}<button class="small ${isExc?'danger':''}" data-act="${isExc?'un-exc':'mk-exc'}" data-date="${f.date}">${isExc?'Quitar excepción':'Marcar como trabajado'}</button></span>
-    </div>`;
-  });
-  html += `<h4 style="font-size:12.5px;color:var(--muted);margin:14px 0 6px;">Festivos fuera de su turno (ya libra de por sí)</h4>`;
-  if(fuera.length===0) html += `<p class="muted" style="font-size:12.5px;">Ninguno.</p>`;
-  fuera.forEach(f=>{ html += `<div class="detail-row"><span>${fmtDMY(f.date)} — ${f.name}</span><span class="muted">Día libre habitual</span></div>`; });
-  html += `</div>`;
-  el.innerHTML = html;
+  renderInformeAnual();
 }
 document.getElementById('an-year').addEventListener('change', e=>{
   STATE.ui.anualYear=parseInt(e.target.value);
@@ -3445,7 +3460,7 @@ document.getElementById('an-day-editor').addEventListener('click', async e=>{
     renderAll();
   }
 });
-document.getElementById('an-report').addEventListener('click', async e=>{
+document.getElementById('an-informe-anual').addEventListener('click', async e=>{
   const btn = e.target.closest('button[data-act]');
   if(!btn) return;
   const name = STATE.ui.anWorker;
@@ -3615,9 +3630,7 @@ function getBalance(name){
     ldInicialDias: b.ldInicialDias!=null?b.ldInicialDias:8,
     bolsaInicialHoras: b.bolsaInicialHoras!=null?b.bolsaInicialHoras:0,
     bolsaGastadoHoras: b.bolsaGastadoHoras!=null?b.bolsaGastadoHoras:0,
-    medicoHoras: b.medicoHoras!=null?b.medicoHoras:0,
-    bajaDias: b.bajaDias!=null?b.bajaDias:0,
-    permisoDias: b.permisoDias!=null?b.permisoDias:0
+    medicoHoras: b.medicoHoras!=null?b.medicoHoras:24
   };
 }
 function vacDisfrutadasFechas(name){
@@ -3763,6 +3776,78 @@ function permisoDiasFechas(name){
   Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='PER') dias.add(d); });
   return [...dias].sort();
 }
+function vacBloquesChipsHTML(name){
+  const vac = STATE.vacaciones[name] || {bloques:[]};
+  const bloques = vac.bloques || [];
+  const bloqueDias = new Set();
+  const bloqueChips = bloques.map(b=>{
+    const end = addDaysStr(b.start,6);
+    let horas=0, d=b.start, guard=0;
+    while(d<=end && guard<10){ bloqueDias.add(d); horas += dayScheduledHoras(name,d); d=addDaysStr(d,1); guard++; }
+    horas = Math.round(horas*10)/10;
+    return `<span class="hr-chip" title="Bloque: ${fmtDMY(b.start)} → ${fmtDMY(end)}">${horas}h·${fmtDMYShort(b.start)}→${fmtDMYShort(end)}</span>`;
+  });
+  const sueltas = vacDisfrutadasFechas(name).filter(d=>!bloqueDias.has(d));
+  const sueltaChips = sueltas.length ? agruparFechasConsecutivas(sueltas).map(g=>{
+    let horas=0, d=g.start, guard=0;
+    while(d<=g.end && guard<400){ horas+=dayScheduledHoras(name,d); d=addDaysStr(d,1); guard++; }
+    horas = Math.round(horas*10)/10;
+    const label = g.start===g.end ? fmtDMYShort(g.start) : `${fmtDMYShort(g.start)}→${fmtDMYShort(g.end)}`;
+    return `<span class="hr-chip" title="Día suelto (fuera de bloque)">${horas}h·${label}</span>`;
+  }) : [];
+  const all = [...bloqueChips, ...sueltaChips];
+  return all.length ? `<div class="hr-chips">${all.join('')}</div>` : '—';
+}
+function dayWorkedHoras(name, dateStr, dov){
+  return Math.round((dayScheduledHoras(name, dateStr) + dayProlongacionHoras(name, dateStr, dov))*10)/10;
+}
+function workerInformeAnual(name, year){
+  const start = fmtISO(year,1,1), end = fmtISO(year,12,31);
+  let diasTrabajados=0, horasTrabajadas=0, permisoDiasYear=0, bajaDiasYear=0, libreHorasDias=0;
+  let d=start, guard=0;
+  while(d<=end && guard<400){
+    const dov = getDayOverride(name, d);
+    if(workerWorkedOnDate(name, d)){
+      diasTrabajados++;
+      horasTrabajadas += dayWorkedHoras(name, d, dov);
+    }
+    if(dov){
+      if(dov.ocup==='PER') permisoDiasYear++;
+      if(dov.ocup==='BJ') bajaDiasYear++;
+      if(dov.ocup==='LIBRE_HORAS') libreHorasDias++;
+    }
+    d = addDaysStr(d,1); guard++;
+  }
+  horasTrabajadas = Math.round(horasTrabajadas*10)/10;
+  const yStr = String(year);
+  const vacLdDias = new Set([
+    ...vacDisfrutadasFechas(name).filter(f=>f.slice(0,4)===yStr),
+    ...ldDisfrutadasFechas(name).filter(f=>f.slice(0,4)===yStr)
+  ]).size;
+  const diasLibradosTotal = libreHorasDias + vacLdDias;
+  return {diasTrabajados, horasTrabajadas, diasLibradosTotal, libreHorasDias, vacLdDias, permisoDiasYear, bajaDiasYear};
+}
+function renderInformeAnual(){
+  const el = document.getElementById('an-informe-anual');
+  const name = STATE.ui.anWorker;
+  if(!name){ el.innerHTML=''; return; }
+  const year = STATE.ui.anualYear;
+  const r = workerInformeAnual(name, year);
+  el.innerHTML = `<div class="panel">
+    <h3 style="margin-bottom:10px;">Informe laboral anual — ${name} (${year})</h3>
+    <div class="statgrid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
+      <div class="statcard"><div class="l">DÍAS TRABAJADOS</div><div class="n" style="font-size:19px;margin-top:4px;">${r.diasTrabajados}</div></div>
+      <div class="statcard"><div class="l">HORAS TRABAJADAS</div><div class="n" style="font-size:19px;margin-top:4px;">${r.horasTrabajadas}h</div></div>
+      <div class="statcard">
+        <div class="l">DÍAS LIBRADOS (TOTAL)</div>
+        <div class="n" style="font-size:19px;margin-top:4px;color:var(--local);">${r.diasLibradosTotal}</div>
+        <div class="muted" style="font-size:10.5px;margin-top:4px;">Por horas: ${r.libreHorasDias}d · Vac+LD: ${r.vacLdDias}d</div>
+      </div>
+      <div class="statcard"><div class="l">DÍAS DE PERMISO</div><div class="n" style="font-size:19px;margin-top:4px;">${r.permisoDiasYear}</div></div>
+      <div class="statcard"><div class="l">DÍAS DE BAJA</div><div class="n" style="font-size:19px;margin-top:4px;">${r.bajaDiasYear}</div></div>
+    </div>
+  </div>`;
+}
 function renderPlBalances(){
   const el = document.getElementById('pl-balances');
   const name = STATE.ui.anWorker;
@@ -3792,9 +3877,7 @@ function renderPlBalances(){
   const medicoAutoTotal = Math.round((medicoDiasH + medicoSueltasH)*10)/10;
   const medicoTotal = Math.round((bal.medicoHoras + medicoAutoTotal)*10)/10;
   const bajaF = bajaDiasFechas(name);
-  const bajaTotal = bal.bajaDias + bajaF.length;
   const permisoF = permisoDiasFechas(name);
-  const permisoTotal = bal.permisoDias + permisoF.length;
   const qYear = STATE.ui.anualYear;
   const findeCount = weekendQuatrimestres(name, qYear).length;
   el.innerHTML = `
@@ -3802,14 +3885,14 @@ function renderPlBalances(){
   <div class="statgrid">
     <div class="statcard">
       <div class="l">VACACIONES</div>
-      <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-vacInicialDias" value="${bal.vacInicialDias}" style="width:50px;"> días</div>
+      <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-vacInicialDias" value="${bal.vacInicialDias}" style="width:68px;"> días</div>
       <div class="muted" style="font-size:11px;">Gastado: ${vacGastadoDias}d</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${vacSaldoDias<0?'var(--danger)':'var(--local)'}">${vacSaldoDias}d</div>
       <div class="l">SALDO</div>
     </div>
     <div class="statcard">
       <div class="l">LIBRE DISPOSICIÓN</div>
-      <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:50px;"> días</div>
+      <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:68px;"> días</div>
       <div class="muted" style="font-size:11px;">Gastado: ${ldGastadoDias}d completo(s) = ${ldDiasHoras}h${ldSueltasH>0?` + ${ldSueltasH}h sueltas`:''}</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${ldSaldoDias<0?'var(--danger)':'var(--local)'}">${ldSaldoDias}d</div>
       <div class="muted" style="font-size:11px;">≈ ${ldSaldoHoras}h de ${ldTotalHoras}h</div>
@@ -3818,11 +3901,11 @@ function renderPlBalances(){
     <div class="statcard">
       <div class="l">BOLSA LIBRE (horas)</div>
       <div class="controls" style="margin:8px 0 4px;flex-wrap:wrap;">
-        Ajuste: <input type="number" class="editnum" id="bal-bolsaInicialHoras" value="${bal.bolsaInicialHoras}" style="width:50px;">h
+        Ajuste: <input type="number" class="editnum" id="bal-bolsaInicialHoras" value="${bal.bolsaInicialHoras}" style="width:68px;">h
       </div>
       <div class="muted" style="font-size:11px;">+ Generado auto: ${bolsaGeneradoAuto}h</div>
       <div class="controls" style="margin:4px 0;flex-wrap:wrap;">
-        Ajuste gastado: <input type="number" class="editnum" id="bal-bolsaGastadoHoras" value="${bal.bolsaGastadoHoras}" style="width:50px;">h
+        Ajuste gastado: <input type="number" class="editnum" id="bal-bolsaGastadoHoras" value="${bal.bolsaGastadoHoras}" style="width:68px;">h
       </div>
       <div class="muted" style="font-size:11px;">+ Gastado auto: ${bolsaGastadoAuto}h</div>
       <div class="n" style="font-size:19px;margin-top:4px;color:${bolsaSaldoHoras<0?'var(--danger)':'var(--local)'}">${bolsaSaldoHoras}h</div>
@@ -3832,8 +3915,8 @@ function renderPlBalances(){
   </div>
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(3,1fr);">
     <div class="statcard" style="padding:10px;">
-      <div class="l">Días de vacaciones disfrutados</div>
-      <div class="muted" style="font-size:11px;margin-top:6px;">${diasChipsHTML(name, vacFechas)}</div>
+      <div class="l">Días de vacaciones disfrutados (bloques)</div>
+      <div class="muted" style="font-size:11px;margin-top:6px;">${vacBloquesChipsHTML(name)}</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">Días de LD disfrutados</div>
@@ -3850,21 +3933,19 @@ function renderPlBalances(){
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));">
     <div class="statcard" style="padding:10px;">
       <div class="l">HORAS MÉDICO</div>
-      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-medicoHoras" value="${bal.medicoHoras}" style="width:44px;">h</div>
+      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-medicoHoras" value="${bal.medicoHoras}" style="width:68px;">h</div>
       <div class="muted" style="font-size:10.5px;margin-top:4px;">+ Auto: ${medicoAutoTotal}h${medicoDiasF.length?` (${medicoDiasF.length}d compl.=${medicoDiasH}h)`:''}${medicoSueltasH>0?` (+${medicoSueltasH}h sueltas)`:''}</div>
       <div class="n" style="font-size:17px;margin-top:4px;">${medicoTotal}h</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">DÍAS DE BAJA</div>
-      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-bajaDias" value="${bal.bajaDias}" style="width:44px;">d</div>
-      <div class="muted" style="font-size:10.5px;margin-top:4px;">+ Auto: ${bajaF.length}d</div>
-      <div class="n" style="font-size:17px;margin-top:4px;">${bajaTotal}d</div>
+      <div class="n" style="font-size:19px;margin-top:8px;">${bajaF.length}d</div>
+      <div class="muted" style="font-size:10.5px;margin-top:4px;">Solo conteo (sin ajuste inicial)</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">DÍAS DE PERMISO</div>
-      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-permisoDias" value="${bal.permisoDias}" style="width:44px;">d</div>
-      <div class="muted" style="font-size:10.5px;margin-top:4px;">+ Auto: ${permisoF.length}d</div>
-      <div class="n" style="font-size:17px;margin-top:4px;">${permisoTotal}d</div>
+      <div class="n" style="font-size:19px;margin-top:8px;">${permisoF.length}d</div>
+      <div class="muted" style="font-size:10.5px;margin-top:4px;">Solo conteo (sin ajuste inicial)</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">DESCANSO FINDES</div>
@@ -3873,14 +3954,30 @@ function renderPlBalances(){
     </div>
   </div>`;
 }
+const BAL_FIELD_LABELS = {
+  vacInicialDias: 'Vacaciones — días iniciales',
+  ldInicialDias: 'Libre disposición — días iniciales',
+  bolsaInicialHoras: 'Bolsa libre — ajuste inicial',
+  bolsaGastadoHoras: 'Bolsa libre — ajuste gastado',
+  medicoHoras: 'Horas médico — ajuste inicial'
+};
 document.getElementById('pl-balances').addEventListener('change', async e=>{
   const inp = e.target.closest('input[id^="bal-"]');
   if(!inp) return;
   const field = inp.id.replace('bal-','');
   const name = STATE.ui.anWorker;
   if(!name) return;
+  const bal = getBalance(name);
+  const oldVal = bal[field];
+  const newVal = parseFloat(inp.value||0);
+  if(newVal===oldVal) return;
+  const label = BAL_FIELD_LABELS[field] || field;
+  if(!confirm(`¿Confirmas cambiar "${label}" de ${oldVal} a ${newVal}?`)){
+    inp.value = oldVal;
+    return;
+  }
   if(!STATE.balances[name]) STATE.balances[name] = getBalance(name);
-  STATE.balances[name][field] = parseFloat(inp.value||0);
+  STATE.balances[name][field] = newVal;
   await saveKey('balances', STATE.balances);
   renderPlBalances();
 });
