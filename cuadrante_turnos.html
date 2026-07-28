@@ -1218,6 +1218,11 @@ const LIBRE_COLOR = '#f472b6';
 const SINDICAL_COLOR = '#e619c9';
 const COBERTURA_COLOR = '#2563eb';
 const COBERTURA_COLOR_OPTS = ['', '#2563eb', '#16a34a', '#db2777', '#9333ea', '#0d9488', '#b45309', '#dc2626', '#4b5563'];
+function hexToRgba(hex, alpha){
+  const h = (hex||'').replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 let STATE = {
   productions: { lasexta: LASEXTA_SEED, antena3: [] },
@@ -2092,7 +2097,7 @@ function renderCuadranteDiario(){
       if(cob.redactor) tip.push('Redactor: '+cob.redactor+(cob.redactorTel?' ('+cob.redactorTel+')':''));
       if(cob.alli) tip.push('Allí (fuera de dependencias)');
       if(cob.observaciones) tip.push('Obs: '+cob.observaciones);
-      coberturaOverlayHTML += `<div class="gantt-cobertura-overlay" style="left:${relLeft}%;width:${relWidth}%;background:${cob.color||COBERTURA_COLOR};" title="${tip.join(' · ')}">${cob.alli?'📍':''}${cob.titulo||'Cobertura'}</div>`;
+      coberturaOverlayHTML += `<div class="gantt-cobertura-overlay" style="left:${relLeft}%;width:${relWidth}%;background:${hexToRgba(cob.color||COBERTURA_COLOR, 0.75)};" title="${tip.join(' · ')}">${cob.alli?'📍':''}${cob.titulo||'Cobertura'}</div>`;
     });
 
     const activeMarks = Object.keys(MARK_SHORT).filter(m=>marks[m]);
