@@ -131,7 +131,7 @@ button.small{padding:3px 8px;font-size:11.5px;}
 .cal-day .lc-mark.extra-mark{background:var(--convenio);color:#2a1700;}
 .cal-day .daynum{font-family:'Space Grotesk';font-weight:600;font-size:14px;}
 .cal-day.festivo-work .daynum{font-weight:800;color:inherit;border-bottom:3px solid currentColor;padding-bottom:1px;}
-.cal-day.festivo-work.festivo-work-l{color:#b8860b;}
+.cal-day.festivo-work.festivo-work-l{color:#2dd4bf;}
 .cal-day.festivo-work.festivo-work-c{color:#15803d;}
 .cal-day .fname{font-size:10px;color:var(--h-color);margin-top:3px;line-height:1.25;}
 .cal-day .count{position:absolute;bottom:6px;right:7px;font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono';}
@@ -170,28 +170,37 @@ tr:hover td{background:var(--panel-alt);}
 .an-month{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px;}
 .an-month h4{font-size:11.5px;text-align:center;margin-bottom:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-family:'Inter';font-weight:600;}
 .an-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2.5px;}
-.an-day{aspect-ratio:1;border-radius:3px;background:var(--panel-alt);font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted-2);font-family:'IBM Plex Mono';position:relative;}
-.an-day .lc-dot{position:absolute;bottom:1.5px;right:1.5px;width:5px;height:5px;border-radius:50%;}
-.an-day .lc-dot.lc-l{background:#22d3ee;}
-.an-day .lc-dot.lc-c{background:#fbbf24;}
-.an-day .lc-dot.extra-dot{background:var(--convenio);}
+.an-day{aspect-ratio:1;border-radius:3px;background:var(--panel-alt);font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted-2);font-family:'IBM Plex Mono';position:relative;overflow:hidden;}
+.an-badges{position:absolute;top:0.5px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:1px;z-index:2;line-height:1;pointer-events:none;}
+.an-badge{font-size:6px;}
+.an-badge.circle{width:8px;height:8px;border-radius:50%;background:#fbbf24;color:#000;font-weight:800;font-size:3px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:-.3px;}
+.an-badge.circle.pvsp{border:1px solid #000;}
 .an-day:hover{outline:1px solid var(--text);}
-.an-day.festivo-work{overflow:hidden;}
+.an-day.festivo-work{box-shadow:0 0 0 3px #15803d inset;}
 .an-day.festivo-work .daynum{font-weight:800;position:relative;z-index:1;}
-.an-day.festivo-work::after{content:'';position:absolute;left:0;right:0;top:60%;height:22%;background:currentColor;opacity:.6;pointer-events:none;}
-.an-day.festivo-work.festivo-work-l{color:#b8860b;}
-.an-day.festivo-work.festivo-work-c{color:#15803d;}
+.an-day.festivo-work::after{content:'';position:absolute;left:0;right:0;top:60%;height:22%;background:var(--fw-band,#15803d);pointer-events:none;}
+.an-day.festivo-work.festivo-work-l{--fw-band:#2dd4bf;}
+.an-day.festivo-work.festivo-work-c{--fw-band:#15803d;}
+.an-day.je-full{background:#15803d;color:#fff;}
+.an-day.je-full .daynum{font-weight:800;}
+.an-day.sindical-full{background:var(--turno-finde);color:#fff;}
+.an-day.sindical-full .daynum{font-weight:800;}
+.an-day.medico-suelto::after{content:'';position:absolute;left:0;right:0;top:60%;height:22%;background:#f5d442;box-shadow:0 0 0 1px #b91c1c inset;pointer-events:none;}
+.an-day.libre-suelto::after{content:'';position:absolute;left:0;right:0;top:60%;height:22%;background:#f472b6;pointer-events:none;}
+.an-day.sindical-suelto::after{content:'';position:absolute;left:0;right:0;top:60%;height:22%;background:var(--turno-finde);pointer-events:none;}
 .an-day.weekend{background:#e6e9ee;}
 .an-day.holiday{background:color-mix(in srgb, var(--h-color) 32%, var(--panel-alt));color:#10121a;font-weight:700;}
 .an-day.hl{box-shadow:0 0 0 2px var(--local) inset;}
 .an-day.rangesel{background:rgba(230,25,201,.35);box-shadow:0 0 0 2px var(--fucsia) inset;font-weight:700;}
 .an-day.abs{color:#0d0d12;font-weight:700;}
-.an-day.abs-vac{background:#f2994a;}
+.an-day.abs-vac{background:#2dd4bf;}
 .an-day.abs-ld{background:#f472b6;}
-.an-day.abs-hm,.an-day.abs-bj{background:#f5d442;}
-.an-day.abs-per{background:#c084fc;}
+.an-day.abs-hm{background:#f5d442;box-shadow:0 0 0 2px #b91c1c inset;}
+.an-day.abs-bj{background:#b91c1c;}
+.an-day.abs.abs-bj{color:#fff;}
+.an-day.abs-per{background:#f5d442;}
 .an-day.abs-libre{background:#8b93a1;}
-.an-day.abs-libre_horas{background:#38bdf8;}
+.an-day.abs-libre_horas{background:#f472b6;}
 .an-day.empty{background:transparent;cursor:default;}
 @media (max-width:1100px){.an-months{grid-template-columns:repeat(2,1fr);}}
 
@@ -228,7 +237,7 @@ tr:hover td{background:var(--panel-alt);}
 .gantt-bar{position:absolute;top:3px;bottom:3px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;gap:2px;padding:2px 0;border:1px solid rgba(0,0,0,.12);}
 .gantt-bar.festivo-work-bar{box-shadow:inset 0 0 0 2px var(--fw-color);}
 .gantt-bar.festivo-work-bar::after{content:'';position:absolute;left:4px;right:4px;bottom:3px;height:3px;border-radius:2px;background:var(--fw-color);pointer-events:none;}
-.gantt-bar.festivo-work-bar-l{--fw-color:#b8860b;}
+.gantt-bar.festivo-work-bar-l{--fw-color:#2dd4bf;}
 .gantt-bar.festivo-work-bar-c{--fw-color:#15803d;}
 .gantt-bar input.gantt-tema{width:100%;flex:1;background:transparent;border:none;font-size:11px;text-align:center;color:inherit;padding:0 4px;}
 .gantt-bar input.gantt-tema::placeholder{color:inherit;opacity:.85;font-weight:600;}
@@ -238,7 +247,7 @@ tr:hover td{background:var(--panel-alt);}
 .gantt-seg{position:absolute;top:3px;bottom:3px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;pointer-events:none;}
 .gantt-subseg{top:auto;bottom:-9px;height:14px;border-radius:4px;font-size:8px;opacity:.92;box-shadow:0 0 0 1px var(--bg);}
 .modal-overlay{position:fixed;inset:0;background:transparent;z-index:1000;}
-.modal-box{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;width:660px;max-width:94vw;max-height:92vh;overflow:visible;box-shadow:0 12px 40px rgba(20,24,32,.18);}
+.modal-box{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;width:660px;max-width:94vw;max-height:92vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 12px 40px rgba(20,24,32,.18);}
 .gm-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;min-width:0;}
 .gm-col{display:flex;flex-direction:column;gap:8px;min-width:0;}
 .modal-box input,.modal-box select{max-width:100%;box-sizing:border-box;}
@@ -3086,16 +3095,31 @@ function renderAnual(){
       const fest = festivoOn(dateStr);
       const weekend = isWeekendDate(dateStr);
       const hl = isHighlightedDay(dateStr);
+      const dov = STATE.ui.anWorker ? getDayOverride(STATE.ui.anWorker, dateStr) : null;
       const absCode = STATE.ui.anWorker ? workerDayAbsenceCode(STATE.ui.anWorker, dateStr) : null;
       const lcInfo = STATE.ui.anWorker ? workerDayLcInfo(STATE.ui.anWorker, dateStr) : null;
       const extraHoras = STATE.ui.anWorker ? dayProlongacionHoras(STATE.ui.anWorker, dateStr) : 0;
+      const marks = (dov && dov.marks) || {};
+      const sindical = dov && dov.sindical;
       const festivoWork = lcInfo && lcInfo.tipo==='Festivo';
+      const jeFull = !absCode && !festivoWork && marks.je===true;
+      const sindicalFull = !absCode && !festivoWork && !jeFull && sindical && sindical.todoElTurno===true;
+      const medicoSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && dov && dov.medico && dov.medico.horas>0;
+      const libreSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && dov && dov.libreDisp && dov.libreDisp.horas>0;
+      const sindicalSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && !libreSuelto && sindical && !sindical.todoElTurno && sindical.horas>0;
       const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
       const inRange = rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
       const style = fest?` style="--h-color:var(--festivo)"`:'';
-      const dayTitle = fest ? fest.name : (lcInfo ? lcInfo.label : d+' de '+MESES_NOMBRE[m]);
-      const marker = festivoWork ? '' : (lcInfo ? `<span class="lc-dot lc-${lcInfo.lc.toLowerCase()}"></span>` : (extraHoras>0 ? `<span class="lc-dot extra-dot"></span>` : ''));
-      gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${festivoWork?'festivo-work festivo-work-'+lcInfo.lc.toLowerCase():''}" data-date="${dateStr}" title="${dayTitle}"${style}><span class="daynum">${d}</span>${marker}</div>`;
+      const dayTitle = fest ? fest.name : (lcInfo ? lcInfo.label : (jeFull ? 'Jornada extra (día completo)' : (sindicalFull ? 'Horas sindicales (todo el turno)' : (medicoSuelto ? `Horas médico: ${dov.medico.horas}h` : (libreSuelto ? `Horas de bolsa disfrutadas: ${dov.libreDisp.horas}h` : (sindicalSuelto ? `Horas sindicales: ${sindical.horas}h` : d+' de '+MESES_NOMBRE[m]))))));
+      const fillClass = festivoWork ? ('festivo-work festivo-work-'+lcInfo.lc.toLowerCase()) : jeFull ? 'je-full' : sindicalFull ? 'sindical-full' : medicoSuelto ? 'medico-suelto' : libreSuelto ? 'libre-suelto' : sindicalSuelto ? 'sindical-suelto' : '';
+      const badges = [];
+      if(marks.lu) badges.push('<span class="an-badge" title="+LU — Plus LiveU">📶</span>');
+      if(marks.pv) badges.push('<span class="an-badge circle pv" title="+PV — Plus viaje">PV</span>');
+      if(marks.pvsp) badges.push('<span class="an-badge circle pvsp" title="+PVSP — Plus viaje especial">PVSP</span>');
+      if(marks.hmt) badges.push('<span class="an-badge" title="HMT — Plus herramienta">🔨</span>');
+      if(extraHoras>0) badges.push(`<span class="an-badge" title="Horas extra: +${Math.round(extraHoras*10)/10}h">🕐</span>`);
+      const badgesHTML = badges.length ? `<div class="an-badges">${badges.join('')}</div>` : '';
+      gh += `<div class="an-day ${weekend?'weekend':''} ${fest?'holiday':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${fillClass}" data-date="${dateStr}" title="${dayTitle}"${style}>${badgesHTML}<span class="daynum">${d}</span></div>`;
     }
     html += `<div class="an-month"><h4>${MESES_NOMBRE[m]}</h4><div class="an-grid">${gh}</div></div>`;
   }
@@ -3572,6 +3596,39 @@ function dayScheduledHoras(name, dateStr){
 function ldDiasGastadoHoras(name){
   return Math.round(ldDisfrutadasFechas(name).reduce((s,d)=>s+dayScheduledHoras(name,d),0)*10)/10;
 }
+function medicoDiasFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const dias = new Set();
+  Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='HM') dias.add(d); });
+  return [...dias].sort();
+}
+function medicoDiasGastadoHoras(name){
+  return Math.round(medicoDiasFechas(name).reduce((s,d)=>s+dayScheduledHoras(name,d),0)*10)/10;
+}
+function medicoSueltasFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const out = [];
+  Object.keys(dov).sort().forEach(d=>{
+    const o = dov[d];
+    if(o && (!o.ocup || o.ocup==='WORK') && o.medico && o.medico.horas>0) out.push({date:d, horas:o.medico.horas});
+  });
+  return out;
+}
+function medicoSueltasHoras(name){
+  return Math.round(medicoSueltasFechas(name).reduce((s,x)=>s+x.horas,0)*10)/10;
+}
+function bajaDiasFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const dias = new Set();
+  Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='BJ') dias.add(d); });
+  return [...dias].sort();
+}
+function permisoDiasFechas(name){
+  const dov = STATE.dayOverrides[name] || {};
+  const dias = new Set();
+  Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='PER') dias.add(d); });
+  return [...dias].sort();
+}
 function renderPlBalances(){
   const el = document.getElementById('pl-balances');
   const name = STATE.ui.anWorker;
@@ -3594,6 +3651,16 @@ function renderPlBalances(){
   const bolsaGastadoFechas = bolsaGastadaFechas(name);
   const bolsaGastadoAuto = bolsaGastadaAutoHoras(name);
   const bolsaSaldoHoras = Math.round((bal.bolsaInicialHoras + bolsaGeneradoAuto - bal.bolsaGastadoHoras - bolsaGastadoAuto)*10)/10;
+  const medicoDiasF = medicoDiasFechas(name);
+  const medicoDiasH = medicoDiasGastadoHoras(name);
+  const medicoSueltasF = medicoSueltasFechas(name);
+  const medicoSueltasH = medicoSueltasHoras(name);
+  const medicoAutoTotal = Math.round((medicoDiasH + medicoSueltasH)*10)/10;
+  const medicoTotal = Math.round((bal.medicoHoras + medicoAutoTotal)*10)/10;
+  const bajaF = bajaDiasFechas(name);
+  const bajaTotal = bal.bajaDias + bajaF.length;
+  const permisoF = permisoDiasFechas(name);
+  const permisoTotal = bal.permisoDias + permisoF.length;
   const qYear = STATE.ui.anualYear;
   const findeCount = weekendQuatrimestres(name, qYear).length;
   el.innerHTML = `
@@ -3649,15 +3716,21 @@ function renderPlBalances(){
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));">
     <div class="statcard" style="padding:10px;">
       <div class="l">HORAS MÉDICO</div>
-      <div class="controls" style="margin:6px 0 0;">Acum.: <input type="number" class="editnum" id="bal-medicoHoras" value="${bal.medicoHoras}" style="width:44px;">h</div>
+      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-medicoHoras" value="${bal.medicoHoras}" style="width:44px;">h</div>
+      <div class="muted" style="font-size:10.5px;margin-top:4px;">+ Auto: ${medicoAutoTotal}h${medicoDiasF.length?` (${medicoDiasF.length}d compl.=${medicoDiasH}h)`:''}${medicoSueltasH>0?` (+${medicoSueltasH}h sueltas)`:''}</div>
+      <div class="n" style="font-size:17px;margin-top:4px;">${medicoTotal}h</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">DÍAS DE BAJA</div>
-      <div class="controls" style="margin:6px 0 0;">Acum.: <input type="number" class="editnum" id="bal-bajaDias" value="${bal.bajaDias}" style="width:44px;">d</div>
+      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-bajaDias" value="${bal.bajaDias}" style="width:44px;">d</div>
+      <div class="muted" style="font-size:10.5px;margin-top:4px;">+ Auto: ${bajaF.length}d</div>
+      <div class="n" style="font-size:17px;margin-top:4px;">${bajaTotal}d</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">DÍAS DE PERMISO</div>
-      <div class="controls" style="margin:6px 0 0;">Acum.: <input type="number" class="editnum" id="bal-permisoDias" value="${bal.permisoDias}" style="width:44px;">d</div>
+      <div class="controls" style="margin:6px 0 0;">Ajuste: <input type="number" class="editnum" id="bal-permisoDias" value="${bal.permisoDias}" style="width:44px;">d</div>
+      <div class="muted" style="font-size:10.5px;margin-top:4px;">+ Auto: ${permisoF.length}d</div>
+      <div class="n" style="font-size:17px;margin-top:4px;">${permisoTotal}d</div>
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">DESCANSO FINDES</div>
