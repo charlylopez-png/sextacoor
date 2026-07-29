@@ -109,7 +109,8 @@ button.small{padding:3px 8px;font-size:11.5px;}
 .cal-dow{text-align:center;color:var(--muted-2);font-size:11px;padding:4px 0;text-transform:uppercase;letter-spacing:.05em;}
 .cal-day{
   background:var(--panel-alt);border:1px solid var(--border);border-radius:8px;
-  min-height:76px;padding:7px;cursor:pointer;position:relative;transition:border-color .12s;
+  min-height:108px;padding:7px;cursor:pointer;position:relative;transition:border-color .12s;
+  overflow:hidden;display:flex;flex-direction:column;
 }
 .cal-day:hover{border-color:var(--local);}
 .cal-day.empty{background:transparent;border-color:transparent;cursor:default;}
@@ -119,21 +120,32 @@ button.small{padding:3px 8px;font-size:11.5px;}
 .cal-day.rangesel{background:rgba(230,25,201,.28);box-shadow:0 0 0 2px var(--fucsia) inset;position:relative;}
 .cal-day.rangesel::after{content:'\2713';position:absolute;top:4px;right:6px;color:var(--fucsia);font-size:11px;font-weight:700;}
 .cal-day.hl{box-shadow:0 0 0 2px var(--local) inset;}
-.cal-day.abs{position:relative;box-shadow: inset 0 -4px 0 0 var(--abs-color,#8b93a1);}
-.cal-day.abs-vac{--abs-color:#f2994a;}
-.cal-day.abs-ld{--abs-color:#f472b6;}
-.cal-day.abs-hm,.cal-day.abs-bj{--abs-color:#f5d442;}
-.cal-day.abs-per{--abs-color:#c084fc;}
-.cal-day.abs-libre_horas{--abs-color:#38bdf8;}
-.cal-day .lc-mark{position:absolute;bottom:6px;right:6px;font-size:8.5px;font-weight:700;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0d0d12;}
+.cal-day.abs{color:#0d0d12;}
+.cal-day.abs-vac{background:#2dd4bf;}
+.cal-day.abs-ld{background:#f472b6;}
+.cal-day.abs-hm{background:#f5d442;box-shadow:0 0 0 2px #b91c1c inset;}
+.cal-day.abs-bj{background:#b91c1c;color:#fff;}
+.cal-day.abs-per{background:#f5d442;}
+.cal-day.abs-libre_horas{background:#f472b6;}
+.cal-day.je-full{background:#15803d;color:#fff;}
+.cal-day.sindical-full{background:var(--turno-finde);color:#fff;}
+.cal-day.medico-suelto::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:#f5d442;box-shadow:0 0 0 1px #b91c1c inset;pointer-events:none;}
+.cal-day.libre-suelto::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:#f472b6;pointer-events:none;}
+.cal-day.sindical-suelto::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--turno-finde);pointer-events:none;}
+.cal-day .lc-mark{position:absolute;bottom:6px;right:6px;font-size:8.5px;font-weight:700;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0d0d12;z-index:2;}
 .cal-day .lc-mark.lc-l{background:#22d3ee;}
 .cal-day .lc-mark.lc-c{background:#fbbf24;}
 .cal-day .lc-mark.extra-mark{background:var(--convenio);color:#2a1700;}
-.cal-day .daynum{font-family:'Space Grotesk';font-weight:600;font-size:14px;}
-.cal-day.festivo-work .daynum{font-weight:800;color:inherit;border-bottom:3px solid currentColor;padding-bottom:1px;}
+.cal-day .daynum{font-family:'Space Grotesk';font-weight:600;font-size:14px;flex-shrink:0;}
+.cal-day.festivo-work .daynum{font-weight:800;color:inherit;border-bottom:3px solid currentColor;padding-bottom:1px;display:inline-block;}
 .cal-day.festivo-work.festivo-work-l{color:#ff66c4;}
 .cal-day.festivo-work.festivo-work-c{color:#15803d;}
-.cal-day .fname{font-size:10px;color:var(--h-color);margin-top:3px;line-height:1.25;}
+.cal-day .fname{font-size:10px;color:var(--h-color);margin-top:2px;line-height:1.2;}
+.cal-day .state-txt{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;margin-top:3px;line-height:1.2;}
+.cal-day .turno-txt{font-size:10px;font-weight:600;margin-top:2px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.cal-day .suelta-txt{font-size:9px;margin-top:2px;line-height:1.2;opacity:.85;}
+.cal-day .cob-txt{font-size:9px;margin-top:2px;line-height:1.2;opacity:.8;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.cal-day .cob-txt::before{content:'📍 ';}
 .cal-day .count{position:absolute;bottom:6px;right:7px;font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono';}
 
 .cal-detail{margin-top:16px;}
@@ -1247,6 +1259,7 @@ const MESES_IDX = {ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOS
 const TIPO_LABEL = {nacional:'Nacional',autonomico:'Autonómico',local:'Local',convenio:'Convenio'};
 const MARK_LABELS = {je:'JE — Jornada extra',lu:'+LU — Plus LiveU',pv:'+PV — Plus viaje',pvsp:'+PVSP — Plus viaje especial',hmt:'HMT — Plus herramienta'};
 const MARK_SHORT = {je:'JE',lu:'+LU',pv:'+PV',pvsp:'+PVSP',hmt:'HMT'};
+const ABS_LABELS = {VAC:'VACACIONES', LD:'LIBRE DISP.', HM:'MÉDICO', BJ:'BAJA', PER:'PERMISO', LIBRE_HORAS:'LIBRE (horas)', FESTIVO:'FESTIVO'};
 const DIETA_OPTS = [
   {v:'', l:'Sin dieta'},
   {v:'media_nac', l:'½ Dieta nacional', short:'½DtN'},
@@ -1606,6 +1619,19 @@ function getEffectiveDayRaw(name, dateStr){
   }
   return {raw: rotationRaw, absence:null, marks:{}, lc:null};
 }
+// Texto a mostrar para el turno de un día en la vista mensual: título manual si lo hay,
+// si no las horas efectivas (con overrides de inicio/fin), si no la etiqueta del turno base.
+function dayTurnoLabel(name, dateStr, dov, eff){
+  if(dov && dov.titulo) return dov.titulo;
+  if(!eff.raw) return '';
+  if(dov && (dov.startOverride || dov.endOverride)){
+    const parsed = parseShiftString(eff.raw);
+    const s = dov.startOverride || (parsed.startMin!=null ? minToHHMM(parsed.startMin) : '');
+    const en = dov.endOverride || (parsed.endMin!=null ? minToHHMM(parsed.endMin%1440) : '');
+    if(s && en) return `${s}-${en}`;
+  }
+  return shiftDisplayLabel(eff.raw);
+}
 function scheduleForDate(dateStr, prodFilter){
   const wd = weekdayKey(parseISO(dateStr));
   const fest = festivoOn(dateStr);
@@ -1702,24 +1728,53 @@ function renderCalendario(){
   let html = '';
   ['L','M','X','J','V','S','D'].forEach(d=>html+=`<div class="cal-dow">${d}</div>`);
   for(let i=0;i<lead;i++) html += `<div class="cal-day empty"></div>`;
+  const name = STATE.ui.anWorker;
   for(let d=1; d<=nDays; d++){
     const dateStr = fmtISO(y,m+1,d);
     const fest = festivoOn(dateStr);
     const count = scheduleForDate(dateStr, STATE.ui.anualProd).length;
     const weekend = isWeekendDate(dateStr);
     const selected = STATE.ui.calSelected===dateStr;
-    const hl = STATE.ui.anWorker ? wouldWorkByPattern(STATE.ui.anWorker, dateStr) : false;
-    const absCode = STATE.ui.anWorker ? workerDayAbsenceCode(STATE.ui.anWorker, dateStr) : null;
-    const lcInfo = STATE.ui.anWorker ? workerDayLcInfo(STATE.ui.anWorker, dateStr) : null;
-    const extraHoras = STATE.ui.anWorker ? dayProlongacionHoras(STATE.ui.anWorker, dateStr) : 0;
+    const hl = name ? wouldWorkByPattern(name, dateStr) : false;
+    const dov = name ? getDayOverride(name, dateStr) : null;
+    const eff = name ? getEffectiveDayRaw(name, dateStr) : {raw:null};
+    const absCode = name ? workerDayAbsenceCode(name, dateStr) : null;
+    const lcInfo = name ? workerDayLcInfo(name, dateStr) : null;
+    const extraHoras = name ? dayProlongacionHoras(name, dateStr) : 0;
+    const marks = (dov && dov.marks) || {};
+    const sindical = dov && dov.sindical;
     const festivoWork = lcInfo && lcInfo.tipo==='Festivo';
+    const jeFull = !absCode && !festivoWork && marks.je===true;
+    const sindicalFull = !absCode && !festivoWork && !jeFull && sindical && sindical.todoElTurno===true;
+    const medicoSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && dov && dov.medico && dov.medico.horas>0;
+    const libreLdH = (dov && dov.libreDisp && dov.libreDisp.ld && dov.libreDisp.ld.horas) || 0;
+    const libreBolsaH = (dov && dov.libreDisp && dov.libreDisp.bolsa && dov.libreDisp.bolsa.horas) || 0;
+    const libreSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && (libreLdH>0 || libreBolsaH>0);
+    const sindicalSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && !libreSuelto && sindical && !sindical.todoElTurno && sindical.horas>0;
     const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
-    const inRange = STATE.ui.anWorker && rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
+    const inRange = name && rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
     const style = fest ? ` style="--h-color:var(--festivo)"` : '';
-    html += `<div class="cal-day ${weekend?'weekend':''} ${fest?'holiday':''} ${selected?'selected':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${festivoWork?'festivo-work festivo-work-'+lcInfo.lc.toLowerCase():''}" data-date="${dateStr}"${style} title="${festivoWork?lcInfo.label:''}">
+    const fillClass = festivoWork ? ('festivo-work festivo-work-'+lcInfo.lc.toLowerCase()) : jeFull ? 'je-full' : sindicalFull ? 'sindical-full' : medicoSuelto ? 'medico-suelto' : libreSuelto ? 'libre-suelto' : sindicalSuelto ? 'sindical-suelto' : '';
+    let stateTxt = '';
+    if(festivoWork) stateTxt = `FESTIVO · ${lcInfo.lc==='L'?'LIBRADO':'COBRADO'}`;
+    else if(jeFull) stateTxt = 'JORNADA EXTRA';
+    else if(sindicalFull) stateTxt = 'SINDICAL';
+    else if(absCode) stateTxt = ABS_LABELS[absCode] || absCode;
+    let sueltaTxt = '';
+    if(medicoSuelto) sueltaTxt = `Médico: ${dov.medico.horas}h`;
+    else if(libreSuelto) sueltaTxt = [libreLdH>0?`LD ${libreLdH}h`:'', libreBolsaH>0?`Bolsa ${libreBolsaH}h`:''].filter(Boolean).join(' + ');
+    else if(sindicalSuelto) sueltaTxt = `Sindical: ${sindical.horas}h`;
+    const turnoTxt = name && !absCode ? dayTurnoLabel(name, dateStr, dov, eff) : '';
+    const coberturas = (dov && dov.coberturas) || [];
+    const cobTxt = coberturas.map(c=>c.titulo).filter(Boolean).join(' · ');
+    html += `<div class="cal-day ${weekend?'weekend':''} ${fest?'holiday':''} ${selected?'selected':''} ${hl?'hl':''} ${absCode?'abs abs-'+absCode.toLowerCase():''} ${inRange?'rangesel':''} ${fillClass}" data-date="${dateStr}"${style} title="${festivoWork?lcInfo.label:''}">
       <div class="daynum">${d}</div>
       ${lcInfo && !festivoWork?`<div class="lc-mark lc-${lcInfo.lc.toLowerCase()}" title="${lcInfo.label}">${lcInfo.lc}</div>`:''}
       ${!lcInfo && extraHoras>0?`<div class="lc-mark extra-mark" title="Horas extra: +${Math.round(extraHoras*10)/10}h">+</div>`:''}
+      ${stateTxt?`<div class="state-txt">${stateTxt}</div>`:''}
+      ${turnoTxt?`<div class="turno-txt">${turnoTxt}</div>`:''}
+      ${cobTxt?`<div class="cob-txt">${cobTxt}</div>`:''}
+      ${sueltaTxt?`<div class="suelta-txt">${sueltaTxt}</div>`:''}
       ${fest?`<div class="fname">${fest.name}</div>`:''}
     </div>`;
   }
@@ -3272,12 +3327,14 @@ function renderAnual(){
       const jeFull = !absCode && !festivoWork && marks.je===true;
       const sindicalFull = !absCode && !festivoWork && !jeFull && sindical && sindical.todoElTurno===true;
       const medicoSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && dov && dov.medico && dov.medico.horas>0;
-      const libreSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && dov && dov.libreDisp && dov.libreDisp.horas>0;
+      const libreLdH = (dov && dov.libreDisp && dov.libreDisp.ld && dov.libreDisp.ld.horas) || 0;
+      const libreBolsaH = (dov && dov.libreDisp && dov.libreDisp.bolsa && dov.libreDisp.bolsa.horas) || 0;
+      const libreSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && (libreLdH>0 || libreBolsaH>0);
       const sindicalSuelto = !absCode && !festivoWork && !jeFull && !sindicalFull && !medicoSuelto && !libreSuelto && sindical && !sindical.todoElTurno && sindical.horas>0;
       const rs = STATE.ui.anRangeStart, re = STATE.ui.anRangeEnd;
       const inRange = rs && ((re && dateStr>=rs && dateStr<=re) || (!re && dateStr===rs));
       const style = fest?` style="--h-color:var(--festivo)"`:'';
-      const dayTitle = fest ? fest.name : (lcInfo ? lcInfo.label : (jeFull ? 'Jornada extra (día completo)' : (sindicalFull ? 'Horas sindicales (todo el turno)' : (medicoSuelto ? `Horas médico: ${dov.medico.horas}h` : (libreSuelto ? `Horas de bolsa disfrutadas: ${dov.libreDisp.horas}h` : (sindicalSuelto ? `Horas sindicales: ${sindical.horas}h` : d+' de '+MESES_NOMBRE[m]))))));
+      const dayTitle = fest ? fest.name : (lcInfo ? lcInfo.label : (jeFull ? 'Jornada extra (día completo)' : (sindicalFull ? 'Horas sindicales (todo el turno)' : (medicoSuelto ? `Horas médico: ${dov.medico.horas}h` : (libreSuelto ? `Horas sueltas: ${libreLdH>0?`LD ${libreLdH}h`:''}${libreLdH>0&&libreBolsaH>0?' + ':''}${libreBolsaH>0?`Bolsa ${libreBolsaH}h`:''}` : (sindicalSuelto ? `Horas sindicales: ${sindical.horas}h` : d+' de '+MESES_NOMBRE[m]))))));
       const fillClass = festivoWork ? ('festivo-work festivo-work-'+lcInfo.lc.toLowerCase()) : jeFull ? 'je-full' : sindicalFull ? 'sindical-full' : medicoSuelto ? 'medico-suelto' : libreSuelto ? 'libre-suelto' : sindicalSuelto ? 'sindical-suelto' : '';
       const badges = [];
       if(marks.lu) badges.push('<span class="an-badge" title="+LU — Plus LiveU">📶</span>');
