@@ -232,8 +232,11 @@ tr:hover td{background:var(--panel-alt);}
 .aliasbadge.mixto{background:rgba(230,25,201,.16);color:var(--turno-mixto);}
 .aliasbadge.finde{background:rgba(167,139,250,.16);color:var(--turno-finde);}
 .aliasbadge.otro{background:rgba(139,147,161,.16);color:var(--muted);}
-.hr-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.hr-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,max-content));gap:4px 8px;align-items:start;}
 .hr-chip{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:10.5px;background:var(--panel-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;white-space:nowrap;}
+.hr-chip-warm{background:rgba(219,39,55,.12);border-color:rgba(219,39,55,.4);color:#b91c1c;}
+.hr-chip-green{background:#16a34a;border-color:#16a34a;color:#fff;}
+.hr-chip-green .tag{background:rgba(255,255,255,.3);color:#fff;}
 .hr-chip .tag{font-family:'Inter';font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--muted);background:var(--border);border-radius:3px;padding:1px 3px;}
 .pat-daycell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;min-width:64px;}
 .pat-daycell .t{font-size:11px;}
@@ -293,7 +296,7 @@ tr:hover td{background:var(--panel-alt);}
 .gantt-row.dragging{opacity:.4;}
 .gantt-row.drag-over-top{box-shadow:inset 0 2px 0 var(--fucsia);}
 .gantt-row.drag-over-bottom{box-shadow:inset 0 -2px 0 var(--fucsia);}
-.gantt-track{position:relative;flex:1;background:repeating-linear-gradient(90deg, var(--border) 0, var(--border) 1px, transparent 1px, transparent calc(100%/17));}
+.gantt-track{position:relative;flex:1;background:repeating-linear-gradient(90deg, var(--border) 0, var(--border) 1px, transparent 1px, transparent calc(100%/17)), var(--panel-alt);}
 .gantt-hour{position:absolute;top:0;bottom:0;font-size:10px;color:var(--muted);padding-top:4px;transform:translateX(2px);}
 .tbl-wrap table{margin-right:16px;}
 .daycell-box .brkrow{display:flex;align-items:center;gap:3px;font-size:9.5px;color:var(--turno-tarde);}
@@ -1632,6 +1635,35 @@ function dayTurnoLabel(name, dateStr, dov, eff){
   }
   return shiftDisplayLabel(eff.raw);
 }
+// Filas día a día del planning de un trabajador entre dos fechas (incluidas), para exportar.
+function buildWorkerPlanningRows(name, startDate, endDate){
+  const rows = [];
+  let d = startDate, guard = 0;
+  while(d<=endDate && guard<800){
+    const wd = weekdayKey(parseISO(d));
+    const dov = getDayOverride(name, d);
+    const eff = getEffectiveDayRaw(name, d);
+    const absCode = workerDayAbsenceCode(name, d);
+    const fest = festivoOn(d);
+    let tipo = 'Turno', detalle = '';
+    if(absCode){
+      tipo = absCode;
+      detalle = ocupLabelAndColor(absCode).label;
+    } else {
+      detalle = dayTurnoLabel(name, d, dov, eff) || '—';
+    }
+    const coberturas = (dov && dov.coberturas) || [];
+    const cobTxt = coberturas.map(c=>c.titulo).filter(Boolean).join(' · ');
+    rows.push({
+      fecha: d, diaSemana: DAY_LABEL_SHORT[wd],
+      tipo, detalle, coberturas: cobTxt,
+      horas: dayScheduledHoras(name, d),
+      festivo: fest ? fest.name : ''
+    });
+    d = addDaysStr(d, 1); guard++;
+  }
+  return rows;
+}
 function scheduleForDate(dateStr, prodFilter){
   const wd = weekdayKey(parseISO(dateStr));
   const fest = festivoOn(dateStr);
@@ -1756,7 +1788,7 @@ function renderCalendario(){
     const style = fest ? ` style="--h-color:var(--festivo)"` : '';
     const fillClass = festivoWork ? ('festivo-work festivo-work-'+lcInfo.lc.toLowerCase()) : jeFull ? 'je-full' : sindicalFull ? 'sindical-full' : medicoSuelto ? 'medico-suelto' : libreSuelto ? 'libre-suelto' : sindicalSuelto ? 'sindical-suelto' : '';
     let stateTxt = '';
-    if(festivoWork) stateTxt = `FESTIVO · ${lcInfo.lc==='L'?'LIBRADO':'COBRADO'}`;
+    if(festivoWork) stateTxt = `FESTIVO ${lcInfo.lc==='L'?'A LIBRAR':'COBRADO'}`;
     else if(jeFull) stateTxt = 'JORNADA EXTRA';
     else if(sindicalFull) stateTxt = 'SINDICAL';
     else if(absCode) stateTxt = ABS_LABELS[absCode] || absCode;
@@ -2092,7 +2124,7 @@ function renderCuadranteDiario(){
   rows.forEach(r=>{
     const f = getFicha(r.name);
     const dov = r.dov;
-    let color = 'transparent', border='1px solid var(--border)', textColor='var(--text)';
+    let color = 'var(--panel)', border='1px solid var(--border)', textColor='var(--text)';
     let festivoBarClass = '';
     let label = r.kind==='work' ? `${minToHHMM(r.startMin%1440)}-${minToHHMM(r.endMin%1440)}${r.parsed.label?' '+dispLabel(r.parsed.label):''}` : ocupLabelAndColor(r.ocup).label;
     if(r.kind==='work' && dov && dov.titulo) label = dov.titulo;
@@ -3774,14 +3806,15 @@ function diasChipsHTML(name, fechas){
     while(d<=g.end && guard<400){ horas += dayScheduledHoras(name, d); d = addDaysStr(d,1); guard++; }
     horas = Math.round(horas*10)/10;
     const label = g.start===g.end ? fmtDMYShort(g.start) : `${fmtDMYShort(g.start)}→${fmtDMYShort(g.end)}`;
-    return `<span class="hr-chip" title="${g.start===g.end?fmtDMY(g.start):fmtDMY(g.start)+' → '+fmtDMY(g.end)}">${horas}h·${label}</span>`;
+    return `<span class="hr-chip hr-chip-warm" title="${g.start===g.end?fmtDMY(g.start):fmtDMY(g.start)+' → '+fmtDMY(g.end)}">${horas}h·${label}</span>`;
   }).join('')}</div>`;
 }
 function hrChipsHTML(items, signo){
   if(!items.length) return '—';
+  const cls = signo==='+' ? 'hr-chip-green' : 'hr-chip-warm';
   return `<div class="hr-chips">${items.map(x=>{
     const tag = x.tipo==='Festivo librado' ? 'FEST' : x.tipo==='JE librada' ? 'JE' : '';
-    return `<span class="hr-chip" ${x.tipo?`title="${x.tipo}"`:''}>${fmtDMY2(x.date)} ${signo}${x.horas}h${tag?` <span class="tag">${tag}</span>`:''}</span>`;
+    return `<span class="hr-chip ${cls}" ${x.tipo?`title="${x.tipo}"`:''}>${fmtDMY2(x.date)} ${signo}${x.horas}h${tag?` <span class="tag">${tag}</span>`:''}</span>`;
   }).join('')}</div>`;
 }
 const HORAS_POR_DIA = 8;
@@ -3799,6 +3832,48 @@ function dayScheduledHoras(name, dateStr){
 }
 function ldDiasGastadoHoras(name){
   return Math.round(ldDisfrutadasFechas(name).reduce((s,d)=>s+dayScheduledHoras(name,d),0)*10)/10;
+}
+/* ---------- filtros por año para reportes (no afectan a los paneles en pantalla, que son acumulados) ---------- */
+function filterFechasByYear(fechas, year){ return fechas.filter(d=>d.slice(0,4)===String(year)); }
+function filterItemsByYear(items, year){ return items.filter(x=>x.date.slice(0,4)===String(year)); }
+function sumHorasFechas(name, fechas){ return Math.round(fechas.reduce((s,d)=>s+dayScheduledHoras(name,d),0)*10)/10; }
+function buildWorkerReportData(name, year){
+  const bal = getBalance(name);
+  const vacFechas = filterFechasByYear(vacDisfrutadasFechas(name), year);
+  const ldFechasCompletas = filterFechasByYear(ldDisfrutadasFechas(name), year);
+  const ldHorasCompletas = sumHorasFechas(name, ldFechasCompletas);
+  const ldFechasSueltas = filterItemsByYear(ldSueltasFechas(name), year);
+  const ldHorasSueltas = Math.round(ldFechasSueltas.reduce((s,x)=>s+x.horas,0)*10)/10;
+  const ldGastadoHorasTotal = Math.round((ldHorasCompletas+ldHorasSueltas)*10)/10;
+  const ldTotalHoras = bal.ldInicialDias*HORAS_POR_DIA;
+  const bolsaFechasGenerado = filterItemsByYear(bolsaGeneradaFechas(name), year);
+  const bolsaGeneradoAuto = Math.round(bolsaFechasGenerado.reduce((s,x)=>s+x.horas,0)*10)/10;
+  const bolsaFechasGastado = filterItemsByYear(bolsaGastadaFechas(name), year);
+  const bolsaGastadoAuto = Math.round(bolsaFechasGastado.reduce((s,x)=>s+x.horas,0)*10)/10;
+  const medicoFechasCompletas = filterFechasByYear(medicoDiasFechas(name), year);
+  const medicoHorasCompletas = sumHorasFechas(name, medicoFechasCompletas);
+  const medicoFechasSueltas = filterItemsByYear(medicoSueltasFechas(name), year);
+  const medicoHorasSueltas = Math.round(medicoFechasSueltas.reduce((s,x)=>s+x.horas,0)*10)/10;
+  const medicoAutoTotal = Math.round((medicoHorasCompletas+medicoHorasSueltas)*10)/10;
+  const bajaFechas = filterFechasByYear(bajaDiasFechas(name), year);
+  const permisoFechas = filterFechasByYear(permisoDiasFechas(name), year);
+  const findeCount = weekendQuatrimestres(name, year).length;
+  return {
+    name, year,
+    vacaciones: { inicialDias: bal.vacInicialDias, gastadoDias: vacFechas.length, saldoDias: bal.vacInicialDias-vacFechas.length, fechas: vacFechas },
+    ld: { inicialDias: bal.ldInicialDias, gastadoDiasCompletos: ldFechasCompletas.length, horasDiasCompletos: ldHorasCompletas,
+          horasSueltas: ldHorasSueltas, gastadoHorasTotal: ldGastadoHorasTotal, saldoDias: bal.ldInicialDias-ldFechasCompletas.length,
+          totalHoras: ldTotalHoras, saldoHoras: Math.round((ldTotalHoras-ldGastadoHorasTotal)*10)/10,
+          fechasCompletas: ldFechasCompletas, fechasSueltas: ldFechasSueltas },
+    bolsa: { inicialHoras: bal.bolsaInicialHoras, generadoAuto: bolsaGeneradoAuto, gastadoAjuste: bal.bolsaGastadoHoras, gastadoAuto: bolsaGastadoAuto,
+             saldoHoras: Math.round((bal.bolsaInicialHoras+bolsaGeneradoAuto-bal.bolsaGastadoHoras-bolsaGastadoAuto)*10)/10,
+             fechasGenerado: bolsaFechasGenerado, fechasGastado: bolsaFechasGastado },
+    medico: { ajuste: bal.medicoHoras, autoTotal: medicoAutoTotal, total: Math.round((bal.medicoHoras+medicoAutoTotal)*10)/10,
+              fechasCompletas: medicoFechasCompletas, fechasSueltas: medicoFechasSueltas },
+    baja: { dias: bajaFechas.length, fechas: bajaFechas },
+    permiso: { dias: permisoFechas.length, fechas: permisoFechas },
+    descansoFindes: { count: findeCount }
+  };
 }
 function medicoDiasFechas(name){
   const dov = STATE.dayOverrides[name] || {};
@@ -3842,7 +3917,7 @@ function vacBloquesChipsHTML(name){
     let horas=0, d=b.start, guard=0;
     while(d<=end && guard<10){ bloqueDias.add(d); horas += dayScheduledHoras(name,d); d=addDaysStr(d,1); guard++; }
     horas = Math.round(horas*10)/10;
-    return `<span class="hr-chip" title="Bloque: ${fmtDMY(b.start)} → ${fmtDMY(end)}">${horas}h·${fmtDMYShort(b.start)}→${fmtDMYShort(end)}</span>`;
+    return `<span class="hr-chip hr-chip-warm" title="Bloque: ${fmtDMY(b.start)} → ${fmtDMY(end)}">${horas}h·${fmtDMYShort(b.start)}→${fmtDMYShort(end)}</span>`;
   });
   const sueltas = vacDisfrutadasFechas(name).filter(d=>!bloqueDias.has(d));
   const sueltaChips = sueltas.length ? agruparFechasConsecutivas(sueltas).map(g=>{
@@ -3850,7 +3925,7 @@ function vacBloquesChipsHTML(name){
     while(d<=g.end && guard<400){ horas+=dayScheduledHoras(name,d); d=addDaysStr(d,1); guard++; }
     horas = Math.round(horas*10)/10;
     const label = g.start===g.end ? fmtDMYShort(g.start) : `${fmtDMYShort(g.start)}→${fmtDMYShort(g.end)}`;
-    return `<span class="hr-chip" title="Día suelto (fuera de bloque)">${horas}h·${label}</span>`;
+    return `<span class="hr-chip hr-chip-warm" title="Día suelto (fuera de bloque)">${horas}h·${label}</span>`;
   }) : [];
   const all = [...bloqueChips, ...sueltaChips];
   return all.length ? `<div class="hr-chips">${all.join('')}</div>` : '—';
@@ -3937,6 +4012,10 @@ function renderPlBalances(){
   const permisoF = permisoDiasFechas(name);
   const qYear = STATE.ui.anualYear;
   const findeCount = weekendQuatrimestres(name, qYear).length;
+  const today = new Date();
+  const todayISO = fmtISO(today.getFullYear(), today.getMonth()+1, today.getDate());
+  const defaultWeekStart = mondayOf(todayISO);
+  const defaultWeekEnd = addDaysStr(defaultWeekStart, 6);
   el.innerHTML = `
   <h3 style="margin-bottom:10px;">Bolsas de horas — ${name}</h3>
   <div class="statgrid">
@@ -4009,8 +4088,178 @@ function renderPlBalances(){
       <div class="muted" style="font-size:10.5px;margin-top:6px;">1 día libre / cuatrimestre trabajado en finde</div>
       <div class="n" style="font-size:16px;margin-top:4px;">${findeCount} <span style="font-size:11px;color:var(--muted);">en ${qYear}</span></div>
     </div>
+  </div>
+  <div class="panel" style="margin-top:10px;">
+    <h4 style="font-size:12.5px;margin-bottom:8px;">Exportar / Reportes — ${name}</h4>
+    <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="statcard" style="padding:10px;">
+        <div class="l">Reporte completo ${qYear}</div>
+        <p class="note" style="margin:6px 0;">Vacaciones/LD/Bolsa/Médico/Baja/Permiso: inicial, generado, gastado, saldo y el detalle de fechas.</p>
+        <div class="controls">
+          <button class="small" id="pl-export-reporte-xlsx">⬇ Excel</button>
+          <button class="small" id="pl-export-reporte-pdf">⬇ PDF</button>
+        </div>
+      </div>
+      <div class="statcard" style="padding:10px;">
+        <div class="l">Planning anual ${qYear}</div>
+        <p class="note" style="margin:6px 0;">Un día por fila: turno, coberturas, ausencias y festivos de todo el año.</p>
+        <div class="controls">
+          <button class="small" id="pl-export-planning-anual-xlsx">⬇ Excel</button>
+          <button class="small" id="pl-export-planning-anual-pdf">⬇ PDF</button>
+        </div>
+      </div>
+      <div class="statcard" style="padding:10px;">
+        <div class="l">Planning por fechas</div>
+        <div class="controls" style="margin:6px 0;flex-wrap:wrap;">
+          Desde <input type="date" id="pl-export-desde" value="${defaultWeekStart}" style="width:135px;">
+          Hasta <input type="date" id="pl-export-hasta" value="${defaultWeekEnd}" style="width:135px;">
+        </div>
+        <div class="controls">
+          <button class="small" id="pl-export-planning-rango-xlsx">⬇ Excel</button>
+          <button class="small" id="pl-export-planning-rango-pdf">⬇ PDF</button>
+        </div>
+      </div>
+    </div>
   </div>`;
 }
+/* ---------- exportación de reporte y planning del trabajador (Excel/PDF) ---------- */
+function reportResumenRows(data){
+  return [
+    ['Vacaciones', `${data.vacaciones.inicialDias}d`, '—', `${data.vacaciones.gastadoDias}d`, `${data.vacaciones.saldoDias}d`],
+    ['Libre disposición', `${data.ld.inicialDias}d (${data.ld.totalHoras}h)`, '—', `${data.ld.gastadoDiasCompletos}d completos = ${data.ld.horasDiasCompletos}h${data.ld.horasSueltas>0?` + ${data.ld.horasSueltas}h sueltas`:''} = ${data.ld.gastadoHorasTotal}h`, `${data.ld.saldoDias}d (${data.ld.saldoHoras}h)`],
+    ['Bolsa libre (horas)', `${data.bolsa.inicialHoras}h`, `${data.bolsa.generadoAuto}h auto`, `${data.bolsa.gastadoAjuste}h ajuste + ${data.bolsa.gastadoAuto}h auto`, `${data.bolsa.saldoHoras}h`],
+    ['Horas médico', `${data.medico.ajuste}h`, `${data.medico.autoTotal}h auto`, '—', `${data.medico.total}h`],
+    ['Días de baja', '—', '—', `${data.baja.dias}d`, '—'],
+    ['Días de permiso', '—', '—', `${data.permiso.dias}d`, '—'],
+    ['Descanso findes', '—', `${data.descansoFindes.count} generados en ${data.year}`, '—', '—']
+  ];
+}
+function reportDetalleRows(data){
+  const out = [];
+  data.vacaciones.fechas.forEach(d=>out.push([d, 'Vacaciones', 'Gastado', `${dayScheduledHoras(data.name,d)}h (1d)`, '']));
+  data.ld.fechasCompletas.forEach(d=>out.push([d, 'Libre disposición', 'Gastado', `${dayScheduledHoras(data.name,d)}h (1d)`, '']));
+  data.ld.fechasSueltas.forEach(x=>out.push([x.date, 'Libre disposición', 'Gastado (horas sueltas)', `${x.horas}h`, '']));
+  data.bolsa.fechasGenerado.forEach(x=>out.push([x.date, 'Bolsa libre', 'Generado', `${x.horas}h`, x.tipo||'']));
+  data.bolsa.fechasGastado.forEach(x=>out.push([x.date, 'Bolsa libre', 'Gastado', `${x.horas}h`, x.tipo||'']));
+  data.medico.fechasCompletas.forEach(d=>out.push([d, 'Médico', 'Gastado', `${dayScheduledHoras(data.name,d)}h (1d)`, '']));
+  data.medico.fechasSueltas.forEach(x=>out.push([x.date, 'Médico', 'Gastado (horas sueltas)', `${x.horas}h`, '']));
+  data.baja.fechas.forEach(d=>out.push([d, 'Baja', 'Gastado', '1d', '']));
+  data.permiso.fechas.forEach(d=>out.push([d, 'Permiso', 'Gastado', '1d', '']));
+  out.sort((a,b)=>a[0].localeCompare(b[0]));
+  return out;
+}
+document.getElementById('pl-export-reporte-xlsx').addEventListener('click', ()=>{
+  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const name = STATE.ui.anWorker;
+    if(!name){ alert('Elige un trabajador primero.'); return; }
+    const data = buildWorkerReportData(name, STATE.ui.anualYear);
+    const wsResumen = XLSX.utils.aoa_to_sheet([[`Reporte ${name} — ${data.year}`],[],['Concepto','Inicial','Generado','Gastado','Saldo'], ...reportResumenRows(data)]);
+    wsResumen['!cols'] = [{wch:22},{wch:22},{wch:26},{wch:34},{wch:20}];
+    const wsDetalle = XLSX.utils.aoa_to_sheet([['Fecha','Concepto','Tipo','Cantidad','Motivo'], ...reportDetalleRows(data)]);
+    wsDetalle['!cols'] = [{wch:12},{wch:18},{wch:22},{wch:16},{wch:20}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+    XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle');
+    XLSX.writeFile(wb, `reporte_${name.replace(/\s+/g,'_')}_${data.year}.xlsx`);
+  }catch(e){ alert('No se pudo generar el Excel: ' + e.message); }
+});
+document.getElementById('pl-export-reporte-pdf').addEventListener('click', ()=>{
+  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const name = STATE.ui.anWorker;
+    if(!name){ alert('Elige un trabajador primero.'); return; }
+    const data = buildWorkerReportData(name, STATE.ui.anualYear);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'landscape'});
+    doc.setFontSize(16); doc.text(`Reporte — ${name} (${data.year})`, 14, 16);
+    doc.autoTable({
+      head:[['Concepto','Inicial','Generado','Gastado','Saldo']], body: reportResumenRows(data),
+      startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'}, styles:{fontSize:9,cellPadding:3}
+    });
+    const detalle = reportDetalleRows(data);
+    doc.autoTable({
+      head:[['Fecha','Concepto','Tipo','Cantidad','Motivo']], body: detalle,
+      startY: doc.lastAutoTable.finalY+10, theme:'grid', headStyles:{fillColor:[37,99,235],textColor:255,fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:8.5,cellPadding:3}
+    });
+    doc.save(`reporte_${name.replace(/\s+/g,'_')}_${data.year}.pdf`);
+  }catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
+});
+function planningRowsToAoa(rows){
+  return [['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo'],
+    ...rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo])];
+}
+document.getElementById('pl-export-planning-anual-xlsx').addEventListener('click', ()=>{
+  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const name = STATE.ui.anWorker;
+    if(!name){ alert('Elige un trabajador primero.'); return; }
+    const year = STATE.ui.anualYear;
+    const rows = buildWorkerPlanningRows(name, `${year}-01-01`, `${year}-12-31`);
+    const ws = XLSX.utils.aoa_to_sheet(planningRowsToAoa(rows));
+    ws['!cols'] = [{wch:11},{wch:5},{wch:14},{wch:24},{wch:28},{wch:8},{wch:20}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Planning');
+    XLSX.writeFile(wb, `planning_${name.replace(/\s+/g,'_')}_${year}.xlsx`);
+  }catch(e){ alert('No se pudo generar el Excel: ' + e.message); }
+});
+document.getElementById('pl-export-planning-anual-pdf').addEventListener('click', ()=>{
+  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const name = STATE.ui.anWorker;
+    if(!name){ alert('Elige un trabajador primero.'); return; }
+    const year = STATE.ui.anualYear;
+    const rows = buildWorkerPlanningRows(name, `${year}-01-01`, `${year}-12-31`);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'landscape'});
+    doc.setFontSize(16); doc.text(`Planning anual — ${name} (${year})`, 14, 16);
+    doc.autoTable({
+      head:[['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo']],
+      body: rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo]),
+      startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:7.5,cellPadding:2}
+    });
+    doc.save(`planning_${name.replace(/\s+/g,'_')}_${year}.pdf`);
+  }catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
+});
+document.getElementById('pl-export-planning-rango-xlsx').addEventListener('click', ()=>{
+  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const name = STATE.ui.anWorker;
+    if(!name){ alert('Elige un trabajador primero.'); return; }
+    const desde = document.getElementById('pl-export-desde').value;
+    const hasta = document.getElementById('pl-export-hasta').value;
+    if(!desde || !hasta || desde>hasta){ alert('Revisa las fechas Desde/Hasta.'); return; }
+    const rows = buildWorkerPlanningRows(name, desde, hasta);
+    const ws = XLSX.utils.aoa_to_sheet(planningRowsToAoa(rows));
+    ws['!cols'] = [{wch:11},{wch:5},{wch:14},{wch:24},{wch:28},{wch:8},{wch:20}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Planning');
+    XLSX.writeFile(wb, `planning_${name.replace(/\s+/g,'_')}_${desde}_a_${hasta}.xlsx`);
+  }catch(e){ alert('No se pudo generar el Excel: ' + e.message); }
+});
+document.getElementById('pl-export-planning-rango-pdf').addEventListener('click', ()=>{
+  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+  try{
+    const name = STATE.ui.anWorker;
+    if(!name){ alert('Elige un trabajador primero.'); return; }
+    const desde = document.getElementById('pl-export-desde').value;
+    const hasta = document.getElementById('pl-export-hasta').value;
+    if(!desde || !hasta || desde>hasta){ alert('Revisa las fechas Desde/Hasta.'); return; }
+    const rows = buildWorkerPlanningRows(name, desde, hasta);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'landscape'});
+    doc.setFontSize(16); doc.text(`Planning — ${name} (${fmtDMY(desde)} a ${fmtDMY(hasta)})`, 14, 16);
+    doc.autoTable({
+      head:[['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo']],
+      body: rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo]),
+      startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:8,cellPadding:3}
+    });
+    doc.save(`planning_${name.replace(/\s+/g,'_')}_${desde}_a_${hasta}.pdf`);
+  }catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
+});
 const BAL_FIELD_LABELS = {
   vacInicialDias: 'Vacaciones — días iniciales',
   ldInicialDias: 'Libre disposición — días iniciales',
