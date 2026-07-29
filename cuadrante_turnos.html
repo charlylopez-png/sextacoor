@@ -1330,10 +1330,20 @@ try{
   }
 }catch(e){ console.warn('Supabase no disponible, usando solo almacenamiento local.', e); }
 
+// Si la petición a Supabase se queda colgada (sin fallar ni resolver — p.ej. wifi inestable o
+// firewall que descarta paquetes en silencio) un simple await se queda esperando para siempre y
+// la app entera se queda en blanco (loadAll nunca llega a renderAll). Con timeout, a los 8s se
+// da por fallida y se sigue con el respaldo local, igual que si Supabase hubiera dado error.
+function withTimeout(promise, ms){
+  return new Promise((resolve, reject)=>{
+    const t = setTimeout(()=>reject(new Error('Tiempo de espera agotado con Supabase')), ms);
+    Promise.resolve(promise).then(v=>{ clearTimeout(t); resolve(v); }, e=>{ clearTimeout(t); reject(e); });
+  });
+}
 async function loadKey(key, fallback){
   if(supabaseClient){
     try{
-      const { data, error } = await supabaseClient.from('sexta_data').select('value').eq('key', key).maybeSingle();
+      const { data, error } = await withTimeout(supabaseClient.from('sexta_data').select('value').eq('key', key).maybeSingle(), 8000);
       if(!error && data){
         try{ localStorage.setItem('cuadrante_turnos_'+key, JSON.stringify(data.value)); }catch(e){}
         return data.value;
@@ -1350,38 +1360,56 @@ async function saveKey(key, val){
   try{ localStorage.setItem('cuadrante_turnos_'+key, JSON.stringify(val)); }catch(e){ console.warn('No se pudo guardar localmente', key, e); }
   if(supabaseClient){
     try{
-      const { error } = await supabaseClient.from('sexta_data').upsert({ key, value: val, updated_at: new Date().toISOString() });
+      const { error } = await withTimeout(supabaseClient.from('sexta_data').upsert({ key, value: val, updated_at: new Date().toISOString() }), 8000);
       if(error) console.warn('No se pudo guardar en Supabase', key, error);
     }catch(e){ console.warn('No se pudo guardar en Supabase', key, e); }
   }
 }
 
+let __loadAllCompleted = false;
 async function loadAll(){
-  STATE.shiftCatalog = await loadKey('shiftCatalog', {});
-  const savedPatterns = await loadKey('patternCatalog', null);
-  if(savedPatterns) STATE.patternCatalog = savedPatterns;
-  else { STATE.patternCatalog = JSON.parse(JSON.stringify(PATTERNCATALOG_SEED)); await saveKey('patternCatalog', STATE.patternCatalog); }
-  STATE.workerConfig = await loadKey('workerConfig', {});
-  STATE.vacaciones = await loadKey('vacaciones', {});
-  STATE.holidayExceptions = await loadKey('holidayExceptions', {});
-  STATE.manualOverrides = await loadKey('manualOverrides', {});
-  STATE.dayOverrides = await loadKey('dayOverrides', {});
-  STATE.dayTopics = await loadKey('dayTopics', {});
-  STATE.dayOrder = await loadKey('dayOrder', {});
-  STATE.balances = await loadKey('balances', {});
-  STATE.fichas = await loadKey('fichas', {});
-  STATE.secciones = await loadKey('secciones', []);
-  let fichasChanged = false;
-  for(const name of Object.keys(FICHAS_SEED)){
-    if(!STATE.fichas[name]){ STATE.fichas[name] = FICHAS_SEED[name]; fichasChanged = true; }
+  // Todas estas claves son independientes entre sí, así que se piden en PARALELO (Promise.all)
+  // en vez de una detrás de otra: si se hicieran en serie, con el timeout de withTimeout cada
+  // una podría tardar hasta su máximo por separado y sumar casi un minuto de pantalla en blanco
+  // si Supabase va lento. En paralelo, el tiempo total es como mucho el de la más lenta.
+  // El try/catch asegura que, pase lo que pase, renderAll() se llama igualmente con lo cargado
+  // hasta ese punto, en vez de quedarse en blanco para siempre.
+  try{
+    const [shiftCatalog, savedPatterns, workerConfig, vacaciones, holidayExceptions, manualOverrides,
+           dayOverrides, dayTopics, dayOrder, balances, fichas, secciones, productionAntena3, savedFestivos] = await Promise.all([
+      loadKey('shiftCatalog', {}), loadKey('patternCatalog', null), loadKey('workerConfig', {}),
+      loadKey('vacaciones', {}), loadKey('holidayExceptions', {}), loadKey('manualOverrides', {}),
+      loadKey('dayOverrides', {}), loadKey('dayTopics', {}), loadKey('dayOrder', {}),
+      loadKey('balances', {}), loadKey('fichas', {}), loadKey('secciones', []),
+      loadKey('productionAntena3', []), loadKey('festivosCustom', null)
+    ]);
+    STATE.shiftCatalog = shiftCatalog;
+    if(savedPatterns) STATE.patternCatalog = savedPatterns;
+    else { STATE.patternCatalog = JSON.parse(JSON.stringify(PATTERNCATALOG_SEED)); await saveKey('patternCatalog', STATE.patternCatalog); }
+    STATE.workerConfig = workerConfig;
+    STATE.vacaciones = vacaciones;
+    STATE.holidayExceptions = holidayExceptions;
+    STATE.manualOverrides = manualOverrides;
+    STATE.dayOverrides = dayOverrides;
+    STATE.dayTopics = dayTopics;
+    STATE.dayOrder = dayOrder;
+    STATE.balances = balances;
+    STATE.fichas = fichas;
+    STATE.secciones = secciones;
+    let fichasChanged = false;
+    for(const name of Object.keys(FICHAS_SEED)){
+      if(!STATE.fichas[name]){ STATE.fichas[name] = FICHAS_SEED[name]; fichasChanged = true; }
+    }
+    if(fichasChanged) await saveKey('fichas', STATE.fichas);
+    STATE.productions.antena3 = productionAntena3;
+    applyNameMerges();
+    if(savedFestivos) STATE.festivos = savedFestivos;
+    else await saveKey('festivosCustom', STATE.festivos);
+  }catch(e){
+    console.warn('Error cargando datos, se muestra con lo disponible', e);
   }
-  if(fichasChanged) await saveKey('fichas', STATE.fichas);
-  STATE.productions.antena3 = await loadKey('productionAntena3', []);
-  applyNameMerges();
-  const savedFestivos = await loadKey('festivosCustom', null);
-  if(savedFestivos) STATE.festivos = savedFestivos;
-  else await saveKey('festivosCustom', STATE.festivos);
   renderAll();
+  __loadAllCompleted = true;
 }
 
 /* ---------- shift parsing ---------- */
@@ -4637,6 +4665,15 @@ function renderAll(){
 }
 loadAll();
 renderSupabaseStatus();
+// Red de seguridad: si por lo que sea la carga inicial no ha terminado en unos segundos (p.ej.
+// se queda colgada en el primer intento de conectar), se reintenta entera sin esperar a la
+// primera — así la pantalla no se queda en blanco para siempre a la espera de un intento fallido.
+setTimeout(()=>{
+  if(!__loadAllCompleted){
+    console.warn('La carga inicial no terminó a tiempo, reintentando…');
+    loadAll();
+  }
+}, 6000);
 
 /* ---------- sub-view toggles ---------- */
 document.getElementById('pv-anual').addEventListener('click', ()=>{
