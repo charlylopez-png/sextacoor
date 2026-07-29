@@ -49,25 +49,29 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;margin:0 0 4px 0
 .app{display:flex;min-height:100vh;}
 
 .sidebar{
-  width:220px;flex-shrink:0;background:var(--panel);
-  border-right:1px solid var(--border);
-  padding:20px 14px;display:flex;flex-direction:column;gap:18px;
+  width:236px;flex-shrink:0;
+  background:linear-gradient(180deg,#1a1d27 0%,#0f1115 100%);
+  padding:24px 16px;display:flex;flex-direction:column;gap:22px;
+  box-shadow:3px 0 24px rgba(0,0,0,.22);
+  position:relative;z-index:1;
 }
-.brand{padding:0 6px;}
-.brand-logo{width:88px;height:auto;display:block;margin-bottom:12px;background:#12141a;border-radius:10px;padding:10px 12px;box-sizing:border-box;}
-.brand h1{font-size:18px;line-height:1.2;background:linear-gradient(90deg,var(--local),var(--fucsia));-webkit-background-clip:text;background-clip:text;color:transparent;}
-.brand p{margin:4px 0 14px;color:var(--muted);font-size:11.5px;}
-.brand-logo-mediapro{width:56px;height:auto;opacity:.9;display:block;background:#12141a;border-radius:10px;padding:8px 10px;box-sizing:border-box;}
+.brand{padding:0 4px;}
+.brand-logos{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.brand-logo{width:74px;height:auto;display:block;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:9px 10px;box-sizing:border-box;}
+.brand-logo-mediapro{width:48px;height:auto;opacity:.95;display:block;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:7px 8px;box-sizing:border-box;}
+.brand h1{font-size:27px;font-weight:700;letter-spacing:-.01em;line-height:1.15;margin:0;background:linear-gradient(90deg,var(--local),var(--fucsia));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.brand p{margin:6px 0 0;color:#8992a6;font-size:11.5px;letter-spacing:.01em;line-height:1.4;}
 
 nav{display:flex;flex-direction:column;gap:4px;}
 .navbtn{
-  display:flex;align-items:center;gap:9px;
-  background:transparent;border:none;color:var(--muted);
-  text-align:left;padding:9px 10px;border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  background:transparent;border:none;color:#8992a6;
+  text-align:left;padding:10px 11px;border-radius:8px;cursor:pointer;
   font-family:'Inter';font-size:13.5px;font-weight:500;
+  transition:background .12s,color .12s;
 }
-.navbtn:hover{background:var(--panel-alt);color:var(--text);}
-.navbtn.active{background:var(--panel-alt);color:var(--text);box-shadow:inset 3px 0 0 var(--local);}
+.navbtn:hover{background:rgba(255,255,255,.06);color:#fff;}
+.navbtn.active{background:rgba(255,255,255,.09);color:#fff;box-shadow:inset 3px 0 0 var(--local);}
 
 .content{flex:1;padding:26px 32px;max-width:1400px;min-width:0;}
 .tab{display:none;}
@@ -232,11 +236,13 @@ tr:hover td{background:var(--panel-alt);}
 .aliasbadge.mixto{background:rgba(230,25,201,.16);color:var(--turno-mixto);}
 .aliasbadge.finde{background:rgba(167,139,250,.16);color:var(--turno-finde);}
 .aliasbadge.otro{background:rgba(139,147,161,.16);color:var(--muted);}
-.hr-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,max-content));gap:4px 8px;align-items:start;}
-.hr-chip{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:10.5px;background:var(--panel-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;white-space:nowrap;}
+.hr-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 8px;align-items:start;}
+.hr-chip{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:10.5px;background:var(--panel-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .hr-chip-warm{background:rgba(219,39,55,.12);border-color:rgba(219,39,55,.4);color:#b91c1c;}
 .hr-chip-green{background:#16a34a;border-color:#16a34a;color:#fff;}
 .hr-chip-green .tag{background:rgba(255,255,255,.3);color:#fff;}
+.hr-chip-border-festivo{box-shadow:0 0 0 2px #dc2626 inset;}
+.hr-chip-border-je{box-shadow:0 0 0 2px #d4a017 inset;}
 .hr-chip .tag{font-family:'Inter';font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--muted);background:var(--border);border-radius:3px;padding:1px 3px;}
 .pat-daycell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;min-width:64px;}
 .pat-daycell .t{font-size:11px;}
@@ -321,10 +327,12 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
+      <div class="brand-logos">
       <img src="data:image/png;base64,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" alt="laSexta" class="brand-logo">
+      <img src="data:image/png;base64,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" alt="Grupo Mediapro" class="brand-logo-mediapro">
+      </div>
       <h1>Sexta Coor</h1>
       <p>Coordinación de cámaras — La Sexta</p>
-      <img src="data:image/png;base64,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" alt="Grupo Mediapro" class="brand-logo-mediapro">
     </div>
     <nav id="nav">
       <button class="navbtn active" data-tab="cuadrante">🗓️ Cuadrante</button>
@@ -452,6 +460,7 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
           </div>
         </div>
         <div id="an-months" class="an-months"></div>
+        <div id="pl-export"></div>
         <div id="an-day-editor"></div>
         <div id="an-informe-anual"></div>
       </div>
@@ -1980,6 +1989,7 @@ document.getElementById('cal-detail').addEventListener('click', async e=>{
   renderAnual();
   renderVacaciones();
   renderPlBalances();
+  renderPlExport();
 });
 
 document.getElementById('cal-prev').addEventListener('click', ()=>{ STATE.ui.month--; if(STATE.ui.month<0){STATE.ui.month=11;STATE.ui.year--;} STATE.ui.calSelected=null; renderCalendario(); });
@@ -2778,6 +2788,7 @@ document.getElementById('cu-vac-panel').addEventListener('click', async e=>{
   renderVacaciones();
   renderAnual();
   renderPlBalances();
+  renderPlExport();
 });
 document.getElementById('f-prod').addEventListener('change', e=>{ STATE.ui.fProd=e.target.value; renderCuadrante(); });
 document.getElementById('f-worker').addEventListener('input', e=>{ STATE.ui.fWorker=e.target.value; renderCuadrante(); });
@@ -3427,6 +3438,7 @@ document.getElementById('an-worker-filter').addEventListener('change', e=>{
   renderGestor();
   renderVacaciones();
   renderPlBalances();
+  renderPlExport();
 });
 document.getElementById('an-months').addEventListener('click', e=>{
   const cell = e.target.closest('.an-day[data-date]');
@@ -3842,7 +3854,9 @@ function hrChipsHTML(items, signo){
   const cls = signo==='+' ? 'hr-chip-green' : 'hr-chip-warm';
   return `<div class="hr-chips">${items.map(x=>{
     const tag = x.tipo==='Festivo librado' ? 'FEST' : x.tipo==='JE librada' ? 'JE' : '';
-    return `<span class="hr-chip ${cls}" ${x.tipo?`title="${x.tipo}"`:''}>${fmtDMY2(x.date)} ${signo}${x.horas}h${tag?` <span class="tag">${tag}</span>`:''}</span>`;
+    // marco rojo si viene de un festivo librado, dorado si viene de una jornada extra librada
+    const borderCls = x.tipo==='Festivo librado' ? 'hr-chip-border-festivo' : x.tipo==='JE librada' ? 'hr-chip-border-je' : '';
+    return `<span class="hr-chip ${cls} ${borderCls}" ${x.tipo?`title="${x.tipo}"`:''}>${fmtDMY2(x.date)} ${signo}${x.horas}h${tag?` <span class="tag">${tag}</span>`:''}</span>`;
   }).join('')}</div>`;
 }
 const HORAS_POR_DIA = 8;
@@ -4040,41 +4054,30 @@ function renderPlBalances(){
   const permisoF = permisoDiasFechas(name);
   const qYear = STATE.ui.anualYear;
   const findeCount = weekendQuatrimestres(name, qYear).length;
-  const today = new Date();
-  const todayISO = fmtISO(today.getFullYear(), today.getMonth()+1, today.getDate());
-  const defaultWeekStart = mondayOf(todayISO);
-  const defaultWeekEnd = addDaysStr(defaultWeekStart, 6);
   el.innerHTML = `
-  <h3 style="margin-bottom:10px;">Bolsas de horas — ${name}</h3>
-  <div class="statgrid">
-    <div class="statcard">
+  <h3 style="margin-bottom:8px;">Bolsas de horas — ${name}</h3>
+  <div class="statgrid" style="margin-bottom:10px;">
+    <div class="statcard" style="padding:8px 10px;">
       <div class="l">VACACIONES</div>
-      <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-vacInicialDias" value="${bal.vacInicialDias}" style="width:68px;"> días</div>
-      <div class="muted" style="font-size:11px;">Gastado: ${vacGastadoDias}d</div>
-      <div class="n" style="font-size:19px;margin-top:4px;color:${vacSaldoDias<0?'var(--danger)':'var(--local)'}">${vacSaldoDias}d</div>
-      <div class="l">SALDO</div>
+      <div class="controls" style="margin:4px 0 2px;font-size:11px;">Inicial: <input type="number" class="editnum" id="bal-vacInicialDias" value="${bal.vacInicialDias}" style="width:56px;"> días</div>
+      <div class="muted" style="font-size:10.5px;">Gastado: ${vacGastadoDias}d</div>
+      <div class="n" style="font-size:16px;margin-top:2px;color:${vacSaldoDias<0?'var(--danger)':'var(--local)'}">${vacSaldoDias}d <span class="l" style="font-size:9.5px;">SALDO</span></div>
     </div>
-    <div class="statcard">
+    <div class="statcard" style="padding:8px 10px;">
       <div class="l">LIBRE DISPOSICIÓN</div>
-      <div class="controls" style="margin:8px 0 4px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:68px;"> días</div>
-      <div class="muted" style="font-size:11px;">Gastado: ${ldGastadoDias}d completo(s) = ${ldDiasHoras}h${ldSueltasH>0?` + ${ldSueltasH}h sueltas`:''}</div>
-      <div class="n" style="font-size:19px;margin-top:4px;color:${ldSaldoDias<0?'var(--danger)':'var(--local)'}">${ldSaldoDias}d</div>
-      <div class="muted" style="font-size:11px;">≈ ${ldSaldoHoras}h de ${ldTotalHoras}h</div>
-      <div class="l">SALDO</div>
+      <div class="controls" style="margin:4px 0 2px;font-size:11px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:56px;"> días</div>
+      <div class="muted" style="font-size:10.5px;">Gastado: ${ldGastadoDias}d = ${ldDiasHoras}h${ldSueltasH>0?` + ${ldSueltasH}h sueltas`:''}</div>
+      <div class="n" style="font-size:16px;margin-top:2px;color:${ldSaldoDias<0?'var(--danger)':'var(--local)'}">${ldSaldoDias}d <span class="l" style="font-size:9.5px;">SALDO</span></div>
+      <div class="muted" style="font-size:10.5px;">≈ ${ldSaldoHoras}h de ${ldTotalHoras}h</div>
     </div>
-    <div class="statcard">
+    <div class="statcard" style="padding:8px 10px;">
       <div class="l">BOLSA LIBRE (horas)</div>
-      <div class="controls" style="margin:8px 0 4px;flex-wrap:wrap;">
-        Ajuste: <input type="number" class="editnum" id="bal-bolsaInicialHoras" value="${bal.bolsaInicialHoras}" style="width:68px;">h
+      <div class="controls" style="margin:4px 0 2px;flex-wrap:wrap;font-size:11px;">
+        Ajuste: <input type="number" class="editnum" id="bal-bolsaInicialHoras" value="${bal.bolsaInicialHoras}" style="width:56px;">h
+        · Gastado: <input type="number" class="editnum" id="bal-bolsaGastadoHoras" value="${bal.bolsaGastadoHoras}" style="width:56px;">h
       </div>
-      <div class="muted" style="font-size:11px;">+ Generado auto: ${bolsaGeneradoAuto}h</div>
-      <div class="controls" style="margin:4px 0;flex-wrap:wrap;">
-        Ajuste gastado: <input type="number" class="editnum" id="bal-bolsaGastadoHoras" value="${bal.bolsaGastadoHoras}" style="width:68px;">h
-      </div>
-      <div class="muted" style="font-size:11px;">+ Gastado auto: ${bolsaGastadoAuto}h</div>
-      <div class="n" style="font-size:19px;margin-top:4px;color:${bolsaSaldoHoras<0?'var(--danger)':'var(--local)'}">${bolsaSaldoHoras}h</div>
-      <div class="muted" style="font-size:11px;">≈ ${horasADiasStr(bolsaSaldoHoras)}</div>
-      <div class="l">SALDO</div>
+      <div class="muted" style="font-size:10.5px;">+auto gen. ${bolsaGeneradoAuto}h · +auto gast. ${bolsaGastadoAuto}h</div>
+      <div class="n" style="font-size:16px;margin-top:2px;color:${bolsaSaldoHoras<0?'var(--danger)':'var(--local)'}">${bolsaSaldoHoras}h <span class="l" style="font-size:9.5px;">SALDO</span></div>
     </div>
   </div>
   <div class="statgrid" style="margin-top:10px;grid-template-columns:repeat(3,1fr);">
@@ -4116,7 +4119,18 @@ function renderPlBalances(){
       <div class="muted" style="font-size:10.5px;margin-top:6px;">1 día libre / cuatrimestre trabajado en finde</div>
       <div class="n" style="font-size:16px;margin-top:4px;">${findeCount} <span style="font-size:11px;color:var(--muted);">en ${qYear}</span></div>
     </div>
-  </div>
+  </div>`;
+}
+function renderPlExport(){
+  const el = document.getElementById('pl-export');
+  const name = STATE.ui.anWorker;
+  if(!name){ el.innerHTML=''; return; }
+  const qYear = STATE.ui.anualYear;
+  const today = new Date();
+  const todayISO = fmtISO(today.getFullYear(), today.getMonth()+1, today.getDate());
+  const defaultWeekStart = mondayOf(todayISO);
+  const defaultWeekEnd = addDaysStr(defaultWeekStart, 6);
+  el.innerHTML = `
   <div class="panel" style="margin-top:10px;">
     <h4 style="font-size:12.5px;margin-bottom:8px;">Exportar / Reportes — ${name}</h4>
     <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
@@ -4180,12 +4194,12 @@ function planningRowsToAoa(rows){
   return [['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo'],
     ...rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo])];
 }
-// Los botones pl-export-* se generan dentro de renderPlBalances() (solo existen cuando hay un
-// trabajador seleccionado), así que el listener va delegado en #pl-balances (que sí existe desde
-// el principio) en vez de con document.getElementById(...).addEventListener directo — eso último
-// lanzaba "Cannot read properties of null" al cargar la página (el botón aún no existía) y cortaba
-// el resto del script, incluida la carga de datos.
-document.getElementById('pl-balances').addEventListener('click', e=>{
+// Los botones pl-export-* se generan dentro de renderPlExport() (solo existen cuando hay un
+// trabajador seleccionado), así que el listener va delegado en #pl-export (que sí existe desde
+// el principio, en el HTML estático) en vez de con document.getElementById(...).addEventListener
+// directo — eso último lanzaba "Cannot read properties of null" al cargar la página (el botón aún
+// no existía) y cortaba el resto del script, incluida la carga de datos.
+document.getElementById('pl-export').addEventListener('click', e=>{
   const name = STATE.ui.anWorker;
   if(e.target.closest('#pl-export-reporte-xlsx')){
     if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
@@ -4322,6 +4336,7 @@ document.getElementById('pl-balances').addEventListener('change', async e=>{
   STATE.balances[name][field] = newVal;
   await saveKey('balances', STATE.balances);
   renderPlBalances();
+  renderPlExport();
 });
 
 
@@ -4667,6 +4682,7 @@ function renderAll(){
   renderVacaciones();
   renderCalculo();
   renderPlBalances();
+  renderPlExport();
   renderGestor();
   renderPlanilla();
   renderSecciones();
