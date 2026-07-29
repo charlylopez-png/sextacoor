@@ -236,8 +236,8 @@ tr:hover td{background:var(--panel-alt);}
 .aliasbadge.mixto{background:rgba(230,25,201,.16);color:var(--turno-mixto);}
 .aliasbadge.finde{background:rgba(167,139,250,.16);color:var(--turno-finde);}
 .aliasbadge.otro{background:rgba(139,147,161,.16);color:var(--muted);}
-.hr-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 8px;align-items:start;}
-.hr-chip{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:10.5px;background:var(--panel-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.hr-chips{column-width:112px;column-gap:8px;}
+.hr-chip{display:flex;width:100%;box-sizing:border-box;align-items:center;gap:4px;font-family:'IBM Plex Mono';font-size:10.5px;background:var(--panel-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;break-inside:avoid;-webkit-column-break-inside:avoid;}
 .hr-chip-warm{background:rgba(219,39,55,.12);border-color:rgba(219,39,55,.4);color:#b91c1c;}
 .hr-chip-green{background:#16a34a;border-color:#16a34a;color:#fff;}
 .hr-chip-green .tag{background:rgba(255,255,255,.3);color:#fff;}
