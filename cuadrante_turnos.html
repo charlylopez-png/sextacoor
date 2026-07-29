@@ -4176,117 +4176,125 @@ function reportDetalleRows(data){
   out.sort((a,b)=>a[0].localeCompare(b[0]));
   return out;
 }
-document.getElementById('pl-export-reporte-xlsx').addEventListener('click', ()=>{
-  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
-  try{
-    const name = STATE.ui.anWorker;
-    if(!name){ alert('Elige un trabajador primero.'); return; }
-    const data = buildWorkerReportData(name, STATE.ui.anualYear);
-    const wsResumen = XLSX.utils.aoa_to_sheet([[`Reporte ${name} — ${data.year}`],[],['Concepto','Inicial','Generado','Gastado','Saldo'], ...reportResumenRows(data)]);
-    wsResumen['!cols'] = [{wch:22},{wch:22},{wch:26},{wch:34},{wch:20}];
-    const wsDetalle = XLSX.utils.aoa_to_sheet([['Fecha','Concepto','Tipo','Cantidad','Motivo'], ...reportDetalleRows(data)]);
-    wsDetalle['!cols'] = [{wch:12},{wch:18},{wch:22},{wch:16},{wch:20}];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
-    XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle');
-    XLSX.writeFile(wb, `reporte_${name.replace(/\s+/g,'_')}_${data.year}.xlsx`);
-  }catch(e){ alert('No se pudo generar el Excel: ' + e.message); }
-});
-document.getElementById('pl-export-reporte-pdf').addEventListener('click', ()=>{
-  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
-  try{
-    const name = STATE.ui.anWorker;
-    if(!name){ alert('Elige un trabajador primero.'); return; }
-    const data = buildWorkerReportData(name, STATE.ui.anualYear);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({orientation:'landscape'});
-    doc.setFontSize(16); doc.text(`Reporte — ${name} (${data.year})`, 14, 16);
-    doc.autoTable({
-      head:[['Concepto','Inicial','Generado','Gastado','Saldo']], body: reportResumenRows(data),
-      startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'}, styles:{fontSize:9,cellPadding:3}
-    });
-    const detalle = reportDetalleRows(data);
-    doc.autoTable({
-      head:[['Fecha','Concepto','Tipo','Cantidad','Motivo']], body: detalle,
-      startY: doc.lastAutoTable.finalY+10, theme:'grid', headStyles:{fillColor:[37,99,235],textColor:255,fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:8.5,cellPadding:3}
-    });
-    doc.save(`reporte_${name.replace(/\s+/g,'_')}_${data.year}.pdf`);
-  }catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
-});
 function planningRowsToAoa(rows){
   return [['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo'],
     ...rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo])];
 }
-document.getElementById('pl-export-planning-anual-xlsx').addEventListener('click', ()=>{
-  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
-  try{
-    const name = STATE.ui.anWorker;
-    if(!name){ alert('Elige un trabajador primero.'); return; }
-    const year = STATE.ui.anualYear;
-    const rows = buildWorkerPlanningRows(name, `${year}-01-01`, `${year}-12-31`);
-    const ws = XLSX.utils.aoa_to_sheet(planningRowsToAoa(rows));
-    ws['!cols'] = [{wch:11},{wch:5},{wch:14},{wch:24},{wch:28},{wch:8},{wch:20}];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Planning');
-    XLSX.writeFile(wb, `planning_${name.replace(/\s+/g,'_')}_${year}.xlsx`);
-  }catch(e){ alert('No se pudo generar el Excel: ' + e.message); }
-});
-document.getElementById('pl-export-planning-anual-pdf').addEventListener('click', ()=>{
-  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
-  try{
-    const name = STATE.ui.anWorker;
-    if(!name){ alert('Elige un trabajador primero.'); return; }
-    const year = STATE.ui.anualYear;
-    const rows = buildWorkerPlanningRows(name, `${year}-01-01`, `${year}-12-31`);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({orientation:'landscape'});
-    doc.setFontSize(16); doc.text(`Planning anual — ${name} (${year})`, 14, 16);
-    doc.autoTable({
-      head:[['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo']],
-      body: rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo]),
-      startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:7.5,cellPadding:2}
-    });
-    doc.save(`planning_${name.replace(/\s+/g,'_')}_${year}.pdf`);
-  }catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
-});
-document.getElementById('pl-export-planning-rango-xlsx').addEventListener('click', ()=>{
-  if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
-  try{
-    const name = STATE.ui.anWorker;
-    if(!name){ alert('Elige un trabajador primero.'); return; }
-    const desde = document.getElementById('pl-export-desde').value;
-    const hasta = document.getElementById('pl-export-hasta').value;
-    if(!desde || !hasta || desde>hasta){ alert('Revisa las fechas Desde/Hasta.'); return; }
-    const rows = buildWorkerPlanningRows(name, desde, hasta);
-    const ws = XLSX.utils.aoa_to_sheet(planningRowsToAoa(rows));
-    ws['!cols'] = [{wch:11},{wch:5},{wch:14},{wch:24},{wch:28},{wch:8},{wch:20}];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Planning');
-    XLSX.writeFile(wb, `planning_${name.replace(/\s+/g,'_')}_${desde}_a_${hasta}.xlsx`);
-  }catch(e){ alert('No se pudo generar el Excel: ' + e.message); }
-});
-document.getElementById('pl-export-planning-rango-pdf').addEventListener('click', ()=>{
-  if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
-  try{
-    const name = STATE.ui.anWorker;
-    if(!name){ alert('Elige un trabajador primero.'); return; }
-    const desde = document.getElementById('pl-export-desde').value;
-    const hasta = document.getElementById('pl-export-hasta').value;
-    if(!desde || !hasta || desde>hasta){ alert('Revisa las fechas Desde/Hasta.'); return; }
-    const rows = buildWorkerPlanningRows(name, desde, hasta);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({orientation:'landscape'});
-    doc.setFontSize(16); doc.text(`Planning — ${name} (${fmtDMY(desde)} a ${fmtDMY(hasta)})`, 14, 16);
-    doc.autoTable({
-      head:[['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo']],
-      body: rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo]),
-      startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:8,cellPadding:3}
-    });
-    doc.save(`planning_${name.replace(/\s+/g,'_')}_${desde}_a_${hasta}.pdf`);
-  }catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
+// Los botones pl-export-* se generan dentro de renderPlBalances() (solo existen cuando hay un
+// trabajador seleccionado), así que el listener va delegado en #pl-balances (que sí existe desde
+// el principio) en vez de con document.getElementById(...).addEventListener directo — eso último
+// lanzaba "Cannot read properties of null" al cargar la página (el botón aún no existía) y cortaba
+// el resto del script, incluida la carga de datos.
+document.getElementById('pl-balances').addEventListener('click', e=>{
+  const name = STATE.ui.anWorker;
+  if(e.target.closest('#pl-export-reporte-xlsx')){
+    if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+    try{
+      if(!name){ alert('Elige un trabajador primero.'); return; }
+      const data = buildWorkerReportData(name, STATE.ui.anualYear);
+      const wsResumen = XLSX.utils.aoa_to_sheet([[`Reporte ${name} — ${data.year}`],[],['Concepto','Inicial','Generado','Gastado','Saldo'], ...reportResumenRows(data)]);
+      wsResumen['!cols'] = [{wch:22},{wch:22},{wch:26},{wch:34},{wch:20}];
+      const wsDetalle = XLSX.utils.aoa_to_sheet([['Fecha','Concepto','Tipo','Cantidad','Motivo'], ...reportDetalleRows(data)]);
+      wsDetalle['!cols'] = [{wch:12},{wch:18},{wch:22},{wch:16},{wch:20}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+      XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle');
+      XLSX.writeFile(wb, `reporte_${name.replace(/\s+/g,'_')}_${data.year}.xlsx`);
+    }catch(err){ alert('No se pudo generar el Excel: ' + err.message); }
+    return;
+  }
+  if(e.target.closest('#pl-export-reporte-pdf')){
+    if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+    try{
+      if(!name){ alert('Elige un trabajador primero.'); return; }
+      const data = buildWorkerReportData(name, STATE.ui.anualYear);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation:'landscape'});
+      doc.setFontSize(16); doc.text(`Reporte — ${name} (${data.year})`, 14, 16);
+      doc.autoTable({
+        head:[['Concepto','Inicial','Generado','Gastado','Saldo']], body: reportResumenRows(data),
+        startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'}, styles:{fontSize:9,cellPadding:3}
+      });
+      const detalle = reportDetalleRows(data);
+      doc.autoTable({
+        head:[['Fecha','Concepto','Tipo','Cantidad','Motivo']], body: detalle,
+        startY: doc.lastAutoTable.finalY+10, theme:'grid', headStyles:{fillColor:[37,99,235],textColor:255,fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:8.5,cellPadding:3}
+      });
+      doc.save(`reporte_${name.replace(/\s+/g,'_')}_${data.year}.pdf`);
+    }catch(err){ alert('No se pudo generar el PDF: ' + err.message); }
+    return;
+  }
+  if(e.target.closest('#pl-export-planning-anual-xlsx')){
+    if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+    try{
+      if(!name){ alert('Elige un trabajador primero.'); return; }
+      const year = STATE.ui.anualYear;
+      const rows = buildWorkerPlanningRows(name, `${year}-01-01`, `${year}-12-31`);
+      const ws = XLSX.utils.aoa_to_sheet(planningRowsToAoa(rows));
+      ws['!cols'] = [{wch:11},{wch:5},{wch:14},{wch:24},{wch:28},{wch:8},{wch:20}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Planning');
+      XLSX.writeFile(wb, `planning_${name.replace(/\s+/g,'_')}_${year}.xlsx`);
+    }catch(err){ alert('No se pudo generar el Excel: ' + err.message); }
+    return;
+  }
+  if(e.target.closest('#pl-export-planning-anual-pdf')){
+    if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+    try{
+      if(!name){ alert('Elige un trabajador primero.'); return; }
+      const year = STATE.ui.anualYear;
+      const rows = buildWorkerPlanningRows(name, `${year}-01-01`, `${year}-12-31`);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation:'landscape'});
+      doc.setFontSize(16); doc.text(`Planning anual — ${name} (${year})`, 14, 16);
+      doc.autoTable({
+        head:[['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo']],
+        body: rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo]),
+        startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:7.5,cellPadding:2}
+      });
+      doc.save(`planning_${name.replace(/\s+/g,'_')}_${year}.pdf`);
+    }catch(err){ alert('No se pudo generar el PDF: ' + err.message); }
+    return;
+  }
+  if(e.target.closest('#pl-export-planning-rango-xlsx')){
+    if(typeof XLSX==='undefined'){ alert('No se pudo cargar la librería de Excel (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+    try{
+      if(!name){ alert('Elige un trabajador primero.'); return; }
+      const desde = document.getElementById('pl-export-desde').value;
+      const hasta = document.getElementById('pl-export-hasta').value;
+      if(!desde || !hasta || desde>hasta){ alert('Revisa las fechas Desde/Hasta.'); return; }
+      const rows = buildWorkerPlanningRows(name, desde, hasta);
+      const ws = XLSX.utils.aoa_to_sheet(planningRowsToAoa(rows));
+      ws['!cols'] = [{wch:11},{wch:5},{wch:14},{wch:28},{wch:8},{wch:20}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Planning');
+      XLSX.writeFile(wb, `planning_${name.replace(/\s+/g,'_')}_${desde}_a_${hasta}.xlsx`);
+    }catch(err){ alert('No se pudo generar el Excel: ' + err.message); }
+    return;
+  }
+  if(e.target.closest('#pl-export-planning-rango-pdf')){
+    if(typeof window.jspdf==='undefined'){ alert('No se pudo cargar la librería de PDF (se descarga de internet al abrir la página). Comprueba tu conexión, recarga la página y vuelve a intentarlo.'); return; }
+    try{
+      if(!name){ alert('Elige un trabajador primero.'); return; }
+      const desde = document.getElementById('pl-export-desde').value;
+      const hasta = document.getElementById('pl-export-hasta').value;
+      if(!desde || !hasta || desde>hasta){ alert('Revisa las fechas Desde/Hasta.'); return; }
+      const rows = buildWorkerPlanningRows(name, desde, hasta);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation:'landscape'});
+      doc.setFontSize(16); doc.text(`Planning — ${name} (${fmtDMY(desde)} a ${fmtDMY(hasta)})`, 14, 16);
+      doc.autoTable({
+        head:[['Fecha','Día','Tipo','Turno/Ausencia','Coberturas','Horas','Festivo']],
+        body: rows.map(r=>[r.fecha, r.diaSemana, r.tipo, r.detalle, r.coberturas, r.horas, r.festivo]),
+        startY: 22, theme:'grid', headStyles:{fillColor:[34,197,94],textColor:255,fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[245,247,250]}, styles:{fontSize:8,cellPadding:3}
+      });
+      doc.save(`planning_${name.replace(/\s+/g,'_')}_${desde}_a_${hasta}.pdf`);
+    }catch(err){ alert('No se pudo generar el PDF: ' + err.message); }
+    return;
+  }
 });
 const BAL_FIELD_LABELS = {
   vacInicialDias: 'Vacaciones — días iniciales',
