@@ -3956,7 +3956,6 @@ function vacDisfrutadasFechas(name){
 function ldDisfrutadasFechas(name){
   const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
   const dias = new Set(vac.libres||[]);
-  vacBloqueFestivoLdFechas(name).forEach(d=>dias.add(d));
   const dov = STATE.dayOverrides[name] || {};
   Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='LD') dias.add(d); });
   return [...dias].sort();
@@ -4092,7 +4091,9 @@ function buildWorkerReportData(name, year){
   const ldFechasSueltas = filterItemsByYear(ldSueltasFechas(name), year);
   const ldHorasSueltas = Math.round(ldFechasSueltas.reduce((s,x)=>s+x.horas,0)*10)/10;
   const ldGastadoHorasTotal = Math.round((ldHorasCompletas+ldHorasSueltas)*10)/10;
-  const ldTotalHoras = bal.ldInicialDias*HORAS_POR_DIA;
+  const ldGeneradoFestivoFechas = filterFechasByYear([...vacBloqueFestivoLdFechas(name)].sort(), year);
+  const ldGeneradoFestivoDias = ldGeneradoFestivoFechas.length;
+  const ldTotalHoras = (bal.ldInicialDias+ldGeneradoFestivoDias)*HORAS_POR_DIA;
   const bolsaFechasGenerado = filterItemsByYear(bolsaGeneradaFechas(name), year);
   const bolsaGeneradoAuto = Math.round(bolsaFechasGenerado.reduce((s,x)=>s+x.horas,0)*10)/10;
   const bolsaFechasGastado = filterItemsByYear(bolsaGastadaFechas(name), year);
@@ -4108,10 +4109,10 @@ function buildWorkerReportData(name, year){
   return {
     name, year,
     vacaciones: { inicialDias: bal.vacInicialDias, gastadoDias: vacFechas.length, saldoDias: bal.vacInicialDias-vacFechas.length, fechas: vacFechas },
-    ld: { inicialDias: bal.ldInicialDias, gastadoDiasCompletos: ldFechasCompletas.length, horasDiasCompletos: ldHorasCompletas,
-          horasSueltas: ldHorasSueltas, gastadoHorasTotal: ldGastadoHorasTotal, saldoDias: bal.ldInicialDias-ldFechasCompletas.length,
+    ld: { inicialDias: bal.ldInicialDias, generadoFestivoDias: ldGeneradoFestivoDias, gastadoDiasCompletos: ldFechasCompletas.length, horasDiasCompletos: ldHorasCompletas,
+          horasSueltas: ldHorasSueltas, gastadoHorasTotal: ldGastadoHorasTotal, saldoDias: bal.ldInicialDias+ldGeneradoFestivoDias-ldFechasCompletas.length,
           totalHoras: ldTotalHoras, saldoHoras: Math.round((ldTotalHoras-ldGastadoHorasTotal)*10)/10,
-          fechasCompletas: ldFechasCompletas, fechasSueltas: ldFechasSueltas },
+          fechasCompletas: ldFechasCompletas, fechasSueltas: ldFechasSueltas, fechasGeneradoFestivo: ldGeneradoFestivoFechas },
     bolsa: { inicialHoras: bal.bolsaInicialHoras, generadoAuto: bolsaGeneradoAuto, gastadoAjuste: bal.bolsaGastadoHoras, gastadoAuto: bolsaGastadoAuto,
              saldoHoras: Math.round((bal.bolsaInicialHoras+bolsaGeneradoAuto-bal.bolsaGastadoHoras-bolsaGastadoAuto)*10)/10,
              fechasGenerado: bolsaFechasGenerado, fechasGastado: bolsaFechasGastado },
@@ -4237,12 +4238,14 @@ function renderPlBalances(){
   const vacSaldoDias = bal.vacInicialDias - vacGastadoDias;
   const ldFechas = ldDisfrutadasFechas(name);
   const ldGastadoDias = ldFechas.length;
-  const ldSaldoDias = bal.ldInicialDias - ldGastadoDias;
+  const ldGeneradoFestivoFechas = [...vacBloqueFestivoLdFechas(name)].sort();
+  const ldGeneradoFestivoDias = ldGeneradoFestivoFechas.length;
+  const ldSaldoDias = bal.ldInicialDias + ldGeneradoFestivoDias - ldGastadoDias;
   const ldDiasHoras = ldDiasGastadoHoras(name);
   const ldSueltasFecha = ldSueltasFechas(name);
   const ldSueltasH = ldSueltasHoras(name);
   const ldGastadoHorasTotal = Math.round((ldDiasHoras + ldSueltasH)*10)/10;
-  const ldTotalHoras = bal.ldInicialDias * HORAS_POR_DIA;
+  const ldTotalHoras = (bal.ldInicialDias + ldGeneradoFestivoDias) * HORAS_POR_DIA;
   const ldSaldoHoras = Math.round((ldTotalHoras - ldGastadoHorasTotal)*10)/10;
   const bolsaGeneradoFechas = bolsaGeneradaFechas(name);
   const bolsaGeneradoAuto = bolsaGeneradaAutoHoras(name);
@@ -4271,6 +4274,7 @@ function renderPlBalances(){
     <div class="statcard" style="padding:8px 10px;">
       <div class="l">LIBRE DISPOSICIÓN</div>
       <div class="controls" style="margin:4px 0 2px;font-size:11px;">Inicial: <input type="number" class="editnum" id="bal-ldInicialDias" value="${bal.ldInicialDias}" style="width:56px;"> días</div>
+      ${ldGeneradoFestivoDias>0?`<div class="muted" style="font-size:10.5px;">+ ${ldGeneradoFestivoDias}d generados (festivo en vacaciones)</div>`:''}
       <div class="muted" style="font-size:10.5px;">Gastado: ${ldGastadoDias}d = ${ldDiasHoras}h${ldSueltasH>0?` + ${ldSueltasH}h sueltas`:''}</div>
       <div class="n" style="font-size:16px;margin-top:2px;color:${ldSaldoDias<0?'var(--danger)':'var(--local)'}">${ldSaldoDias}d <span class="l" style="font-size:9.5px;">SALDO</span></div>
       <div class="muted" style="font-size:10.5px;">≈ ${ldSaldoHoras}h de ${ldTotalHoras}h</div>
@@ -4294,6 +4298,7 @@ function renderPlBalances(){
       <div class="l">Días de LD disfrutados</div>
       <div class="muted" style="font-size:11px;margin-top:6px;">${diasChipsHTML(name, ldFechas)}</div>
       ${ldSueltasH>0?`<div class="l" style="margin-top:8px;">Horas sueltas de LD</div><div class="muted" style="font-size:11px;margin-top:6px;">${hrChipsHTML(ldSueltasFecha, '-')}</div>`:''}
+      ${ldGeneradoFestivoDias>0?`<div class="l" style="margin-top:8px;">Días LD generados (festivo en vacaciones)</div><div class="muted" style="font-size:11px;margin-top:6px;">${hrChipsHTML(ldGeneradoFestivoFechas.map(d=>({date:d, horas:dayScheduledHoras(name,d), tipo:'Festivo en vacaciones'})), '+')}</div>`:''}
     </div>
     <div class="statcard" style="padding:10px;">
       <div class="l">Horas de bolsa disfrutadas</div>
@@ -4373,7 +4378,7 @@ function renderPlExport(){
 function reportResumenRows(data){
   return [
     ['Vacaciones', `${data.vacaciones.inicialDias}d`, '—', `${data.vacaciones.gastadoDias}d`, `${data.vacaciones.saldoDias}d`],
-    ['Libre disposición', `${data.ld.inicialDias}d (${data.ld.totalHoras}h)`, '—', `${data.ld.gastadoDiasCompletos}d completos = ${data.ld.horasDiasCompletos}h${data.ld.horasSueltas>0?` + ${data.ld.horasSueltas}h sueltas`:''} = ${data.ld.gastadoHorasTotal}h`, `${data.ld.saldoDias}d (${data.ld.saldoHoras}h)`],
+    ['Libre disposición', `${data.ld.inicialDias}d (${data.ld.totalHoras}h)`, data.ld.generadoFestivoDias>0?`${data.ld.generadoFestivoDias}d festivo en vacaciones`:'—', `${data.ld.gastadoDiasCompletos}d completos = ${data.ld.horasDiasCompletos}h${data.ld.horasSueltas>0?` + ${data.ld.horasSueltas}h sueltas`:''} = ${data.ld.gastadoHorasTotal}h`, `${data.ld.saldoDias}d (${data.ld.saldoHoras}h)`],
     ['Bolsa libre (horas)', `${data.bolsa.inicialHoras}h`, `${data.bolsa.generadoAuto}h auto`, `${data.bolsa.gastadoAjuste}h ajuste + ${data.bolsa.gastadoAuto}h auto`, `${data.bolsa.saldoHoras}h`],
     ['Horas médico', `${data.medico.inicialHoras}h`, '—', `${data.medico.gastadoHoras}h`, `${data.medico.saldoHoras}h`],
     ['Días de baja', '—', '—', `${data.baja.dias}d`, '—'],
@@ -4386,6 +4391,7 @@ function reportDetalleRows(data){
   data.vacaciones.fechas.forEach(d=>out.push([d, 'Vacaciones', 'Gastado', `${dayScheduledHoras(data.name,d)}h (1d)`, '']));
   data.ld.fechasCompletas.forEach(d=>out.push([d, 'Libre disposición', 'Gastado', `${dayScheduledHoras(data.name,d)}h (1d)`, '']));
   data.ld.fechasSueltas.forEach(x=>out.push([x.date, 'Libre disposición', 'Gastado (horas sueltas)', `${x.horas}h`, '']));
+  data.ld.fechasGeneradoFestivo.forEach(d=>out.push([d, 'Libre disposición', 'Generado', `${dayScheduledHoras(data.name,d)}h (1d)`, 'Festivo en vacaciones']));
   data.bolsa.fechasGenerado.forEach(x=>out.push([x.date, 'Bolsa libre', 'Generado', `${x.horas}h`, x.tipo||'']));
   data.bolsa.fechasGastado.forEach(x=>out.push([x.date, 'Bolsa libre', 'Gastado', `${x.horas}h`, x.tipo||'']));
   data.medico.fechasCompletas.forEach(d=>out.push([d, 'Médico', 'Gastado', `${dayScheduledHoras(data.name,d)}h (1d)`, '']));
