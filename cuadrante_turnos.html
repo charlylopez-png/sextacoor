@@ -3929,25 +3929,26 @@ function getBalance(name){
     medicoHoras: b.medicoHoras!=null?b.medicoHoras:24
   };
 }
-// Días de un bloque de vacaciones que caen en festivo (y que el trabajador habría trabajado
-// ese día según su patrón si no estuviera de vacaciones): ese día no "gasta" vacaciones, se
-// transforma en día de libre disposición.
+// Días de vacaciones (en bloque o sueltos, día a día vía dov.ocup==='VAC') que caen en festivo
+// y que el trabajador habría trabajado ese día según su patrón habitual: las vacaciones NO se
+// tocan (se siguen contando igual), pero ese día genera además un día de libre disposición extra.
+// OJO: no usar wouldWorkByPattern aquí — como el propio día está marcado VAC, esa función lo
+// vería como ausencia y siempre daría "no trabajaría"; hay que mirar el patrón de rotación en
+// crudo, ignorando el override de ese día.
 function vacBloqueFestivoLdFechas(name){
-  const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
   const dias = new Set();
-  (vac.bloques||[]).forEach(b=>{
-    for(let i=0;i<7;i++){
-      const d = addDaysStr(b.start,i);
-      if((festivoOn(d) || isFestivoEspecialDate(d)) && wouldWorkByPattern(name, d)) dias.add(d);
-    }
+  vacDisfrutadasFechas(name).forEach(d=>{
+    if(!(festivoOn(d) || isFestivoEspecialDate(d))) return;
+    const wd = weekdayKey(parseISO(d));
+    const pattern = getWorkerPatternForDate(name, d);
+    if(pattern && pattern[wd]) dias.add(d);
   });
   return dias;
 }
 function vacDisfrutadasFechas(name){
   const vac = STATE.vacaciones[name] || {bloques:[],libres:[]};
-  const festivoLd = vacBloqueFestivoLdFechas(name);
   const dias = new Set();
-  (vac.bloques||[]).forEach(b=>{ for(let i=0;i<7;i++){ const d=addDaysStr(b.start,i); if(!festivoLd.has(d)) dias.add(d); } });
+  (vac.bloques||[]).forEach(b=>{ for(let i=0;i<7;i++) dias.add(addDaysStr(b.start,i)); });
   const dov = STATE.dayOverrides[name] || {};
   Object.keys(dov).forEach(d=>{ if(dov[d] && dov[d].ocup==='VAC') dias.add(d); });
   return [...dias].sort();
