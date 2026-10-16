@@ -7,7 +7,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -294,6 +293,9 @@ tr:hover td{background:var(--panel-alt);}
 .gantt-seg{position:absolute;top:3px;bottom:3px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;pointer-events:none;}
 .gantt-subseg{top:auto;bottom:-9px;height:14px;border-radius:4px;font-size:8px;opacity:.92;box-shadow:0 0 0 1px var(--bg);}
 .gantt-cobertura-overlay{position:absolute;top:1px;bottom:1px;z-index:2;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:700;color:#fff;padding:0 3px;box-shadow:0 0 0 1px rgba(255,255,255,.35) inset;}
+.store-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;margin-bottom:14px;border-radius:var(--radius);font-size:12.5px;background:#fff7e0;border:1px solid #e8c766;color:#5a4300;}
+.store-banner.err{background:#fdecec;border-color:#e59a9a;color:#7a1f1f;}
+.store-banner button{font-size:12px;}
 .modal-overlay{position:fixed;inset:0;background:transparent;z-index:1000;}
 .modal-box{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;width:660px;max-width:94vw;max-height:92vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 12px 40px rgba(20,24,32,.18);}
 .gm-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;min-width:0;}
@@ -363,6 +365,7 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
   </aside>
 
   <main class="content">
+    <div id="store-banner" style="display:none;"></div>
 
     <section id="tab-cuadrante" class="tab active">
       <div class="tab-head">
@@ -628,18 +631,18 @@ textarea#import-text{width:100%;height:220px;font-family:'IBM Plex Mono';font-si
     <section id="tab-ajustes" class="tab">
       <div class="tab-head"><h2>Ajustes</h2></div>
       <div class="panel">
-        <h3>Conexión a Supabase (Sexta Coor)</h3>
-        <p class="note">Los datos ahora se guardan en la nube (proyecto <strong>sexta-coor</strong>), no solo en este navegador. Así puedes abrir la app desde cualquier ordenador y ver siempre lo mismo.</p>
-        <div id="supabase-status" class="controls"></div>
+        <h3>Almacenamiento de datos</h3>
+        <p class="note">Los datos se guardan en un archivo (<strong>cuadrante_datos.json</strong>) dentro de la carpeta que elijas, pensada para una carpeta de OneDrive: así ves lo mismo desde cualquier PC. Además se mantiene una copia en este navegador y una <strong>copia diaria automática</strong> en la subcarpeta <strong>copias</strong> (se conservan las últimas 30). Si dos PCs editan a la vez, la app fusiona los cambios en vez de pisarlos. Solo funciona en Chrome o Edge.</p>
+        <div id="store-status" class="controls"></div>
         <div class="controls" style="margin-top:10px;">
-          <button id="supabase-push-local">⬆ Subir mis datos locales a Supabase</button>
+          <button class="primary" data-store-action="link">📁 Elegir carpeta de datos…</button>
+          <button data-store-action="reconnect">🔌 Reconectar</button>
         </div>
-        <p class="note">Usa esto una sola vez si ya tenías datos guardados en este navegador de antes de conectar Supabase, para que suban a la nube y no se pierdan.</p>
-        <div id="supabase-push-status" style="margin-top:8px;"></div>
+        <p class="note">Elige la carpeta una sola vez en cada PC. Si ya había datos en este navegador de antes y la carpeta está vacía, se suben a ella automáticamente. Si la carpeta ya tiene datos de otro PC, se cargan aquí (y lo que tuvieras antes en este navegador se guarda en <strong>copias</strong> antes de reemplazarse).</p>
       </div>
       <div class="panel">
         <h3>Copia de seguridad de todos los datos</h3>
-        <p class="note">Todo lo que editas (alias, descansos, tickets, vacaciones, fichas, cambios manuales, marcas del día, temas del planning diario…) se guarda ahora en Supabase, con una copia local de respaldo en el navegador. Esta exportación/importación sigue disponible como copia de seguridad extra.</p>
+        <p class="note">Todo lo que editas (alias, descansos, tickets, vacaciones, fichas, cambios manuales, marcas del día, temas del planning diario…) se guarda en el archivo de datos de la carpeta vinculada (y en una copia local en el navegador). Esta exportación/importación es una copia de seguridad extra, útil antes de hacer cambios grandes.</p>
         <div class="controls">
           <button id="backup-export" class="primary">⬇ Exportar todos los datos</button>
           <button id="backup-import">⬆ Importar datos de respaldo</button>
@@ -1353,60 +1356,356 @@ function weekdayKey(dateObj){ const map=['sun','mon','tue','wed','thu','fri','sa
 function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
 function isWeekendDate(dateStr){ const wd = parseISO(dateStr).getDay(); return wd===0||wd===6; }
 
-/* ---------- storage (Supabase, con localStorage como caché/respaldo) ---------- */
-const SUPABASE_URL = 'https://xyuhejflgmmxznvozgeo.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_-ZcwaPCHcAao2GQFgJu44w_C-TWR1PL';
-let supabaseClient = null;
-try{
-  if(window.supabase && SUPABASE_URL && SUPABASE_KEY){
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  }
-}catch(e){ console.warn('Supabase no disponible, usando solo almacenamiento local.', e); }
+/* ---------- almacenamiento: archivo JSON en una carpeta (p.ej. OneDrive) + copia local en el navegador ----------
+   - Los datos viven en memoria (STORE.mem) y se guardan SIEMPRE en el navegador (localStorage) al instante.
+   - Si hay una carpeta vinculada, además se escriben en <carpeta>/cuadrante_datos.json (con un respaldo diario
+     en <carpeta>/copias/). Al escribir, se vuelve a leer el archivo y se FUSIONAN los cambios de otro PC
+     (fusión de 3 vías por campo) en vez de sobrescribirlos.
+   - Cada bloque lleva su marca de tiempo (t). Al vincular, gana el más reciente. Los datos "semilla" por
+     defecto (T_SEED) nunca ganan a datos reales. */
+const BACKUP_KEYS = ['shiftCatalog','patternCatalog','workerConfig','vacaciones','holidayExceptions',
+  'manualOverrides','dayOverrides','balances','fichas','dayTopics','dayOrder','festivosCustom','productionAntena3','secciones'];
+const STORE_FILE = 'cuadrante_datos.json';
+const LS_PREFIX = 'cuadrante_turnos_';      // mismo prefijo que antes: así se conservan los datos ya guardados
+const LS_T_PREFIX = 'cuadrante_ts_';        // marca de tiempo de cada bloque
+const T_SEED = '0000-semilla';              // dato por defecto, nunca ha sido editado por una persona
+const T_LEGACY = '1970-01-01T00:00:00.000Z';// dato de antes de existir marcas de tiempo
+const STORE = { mem:{}, base:{}, t:{}, dirty:new Set(), dir:null, fileHandle:null, status:'local', msg:'',
+  lastFileStamp:0, timer:null, syncing:null, again:false, lastSync:null, copiaHoy:'' };
 
-// Si la petición a Supabase se queda colgada (sin fallar ni resolver — p.ej. wifi inestable o
-// firewall que descarta paquetes en silencio) un simple await se queda esperando para siempre y
-// la app entera se queda en blanco (loadAll nunca llega a renderAll). Con timeout, a los 8s se
-// da por fallida y se sigue con el respaldo local, igual que si Supabase hubiera dado error.
-function withTimeout(promise, ms){
-  return new Promise((resolve, reject)=>{
-    const t = setTimeout(()=>reject(new Error('Tiempo de espera agotado con Supabase')), ms);
-    Promise.resolve(promise).then(v=>{ clearTimeout(t); resolve(v); }, e=>{ clearTimeout(t); reject(e); });
+const clone = v => v===undefined ? undefined : JSON.parse(JSON.stringify(v));
+function ymd(d){ d = d || new Date(); return fmtISO(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+function isObj(x){ return x!==null && typeof x==='object' && !Array.isArray(x); }
+function deepEq(a,b){
+  if(a===b) return true;
+  if(a===undefined || b===undefined || a===null || b===null) return false;
+  if(typeof a!=='object' || typeof b!=='object') return false;
+  if(Array.isArray(a)!==Array.isArray(b)) return false;
+  if(Array.isArray(a)){
+    if(a.length!==b.length) return false;
+    for(let i=0;i<a.length;i++) if(!deepEq(a[i],b[i])) return false;
+    return true;
+  }
+  const ka = Object.keys(a), kb = Object.keys(b);
+  if(ka.length!==kb.length) return false;
+  for(const k of ka){ if(!(k in b) || !deepEq(a[k], b[k])) return false; }
+  return true;
+}
+// Fusión de 3 vías: base = lo último que sabíamos del archivo, mine = lo mío, theirs = lo que hay ahora en el archivo.
+// En objetos se fusiona campo a campo (recursivo); en listas y valores simples, si ambos cambian, gana lo mío.
+function merge3(base, mine, theirs){
+  if(deepEq(mine, theirs)) return mine;
+  if(deepEq(mine, base)) return theirs;
+  if(deepEq(theirs, base)) return mine;
+  if(isObj(mine) && isObj(theirs) && (isObj(base) || base===undefined)){
+    const b = base || {}, out = {};
+    const keys = new Set([...Object.keys(mine), ...Object.keys(theirs), ...Object.keys(b)]);
+    for(const k of keys){
+      const r = merge3(b[k], mine[k], theirs[k]);
+      if(r!==undefined) out[k] = r;
+    }
+    return out;
+  }
+  return mine;
+}
+
+/* --- IndexedDB: solo para recordar la carpeta vinculada --- */
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open('cuadrante_turnos_fs', 1);
+    r.onupgradeneeded = ()=>r.result.createObjectStore('h');
+    r.onsuccess = ()=>res(r.result);
+    r.onerror = ()=>rej(r.error);
   });
 }
-async function loadKey(key, fallback){
-  if(supabaseClient){
-    try{
-      const { data, error } = await withTimeout(supabaseClient.from('sexta_data').select('value').eq('key', key).maybeSingle(), 8000);
-      if(!error && data){
-        try{ localStorage.setItem('cuadrante_turnos_'+key, JSON.stringify(data.value)); }catch(e){}
-        return data.value;
-      }
-    }catch(e){ console.warn('No se pudo leer de Supabase', key, e); }
-  }
-  try{
-    const raw = localStorage.getItem('cuadrante_turnos_'+key);
-    if(raw!=null) return JSON.parse(raw);
-  }catch(e){ console.warn('No se pudo leer', key, e); }
-  return fallback;
+async function idbGet(k){
+  const db = await idbOpen();
+  return new Promise((res,rej)=>{ const q = db.transaction('h','readonly').objectStore('h').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); });
 }
-async function saveKey(key, val){
-  try{ localStorage.setItem('cuadrante_turnos_'+key, JSON.stringify(val)); }catch(e){ console.warn('No se pudo guardar localmente', key, e); }
-  if(supabaseClient){
-    try{
-      const { error } = await withTimeout(supabaseClient.from('sexta_data').upsert({ key, value: val, updated_at: new Date().toISOString() }), 8000);
-      if(error) console.warn('No se pudo guardar en Supabase', key, error);
-    }catch(e){ console.warn('No se pudo guardar en Supabase', key, e); }
+async function idbSet(k,v){
+  const db = await idbOpen();
+  return new Promise((res,rej)=>{ const tx = db.transaction('h','readwrite'); tx.objectStore('h').put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); });
+}
+
+/* --- copia local (navegador) --- */
+function lsRead(key){
+  try{ const raw = localStorage.getItem(LS_PREFIX+key); return raw==null ? undefined : JSON.parse(raw); }
+  catch(e){ console.warn('No se pudo leer', key, e); return undefined; }
+}
+function lsWrite(key, val, t){
+  try{ localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); localStorage.setItem(LS_T_PREFIX+key, t); }
+  catch(e){ console.warn('No se pudo guardar localmente', key, e); }
+}
+
+/* --- archivo --- */
+async function readStoreFile(){
+  const f = await STORE.fileHandle.getFile();
+  STORE.lastFileStamp = f.lastModified;
+  const txt = await f.text();
+  if(!txt.trim()) return null;
+  const j = JSON.parse(txt);   // si está corrupto o a medio sincronizar, lanza error y NO se sobrescribe nada
+  if(!j || typeof j!=='object' || !isObj(j.keys)) throw new Error('El archivo de datos no tiene el formato esperado');
+  return j;
+}
+async function writeStoreFile(obj){
+  const w = await STORE.fileHandle.createWritable();
+  await w.write(JSON.stringify(obj));
+  await w.close();
+  STORE.lastFileStamp = (await STORE.fileHandle.getFile()).lastModified;
+}
+async function podarCopias(copias, max){
+  const nombres = [];
+  for await (const [n] of copias.entries()){ if(/^cuadrante_datos_\d{4}-\d{2}-\d{2}\.json$/.test(n)) nombres.push(n); }
+  nombres.sort();
+  while(nombres.length > (max||30)) await copias.removeEntry(nombres.shift());
+}
+async function writeCopia(nombre, contenido){
+  const copias = await STORE.dir.getDirectoryHandle('copias', {create:true});
+  const fh = await copias.getFileHandle(nombre, {create:true});
+  const w = await fh.createWritable();
+  await w.write(typeof contenido==='string' ? contenido : JSON.stringify(contenido));
+  await w.close();
+  return copias;
+}
+
+/* --- vincular / sincronizar --- */
+async function connectStore(dir){
+  STORE.dir = dir;
+  STORE.fileHandle = await dir.getFileHandle(STORE_FILE, {create:true});
+  await idbSet('dir', dir);
+  const file = await readStoreFile();
+  const ahora = new Date().toISOString();
+  const antes = clone(STORE.mem);
+  const fkeys = (file && file.keys) || {};
+  const todas = new Set([...Object.keys(fkeys), ...Object.keys(STORE.mem)]);
+  let changed = false, reemplazado = false;
+  for(const k of todas){
+    const f = fkeys[k];
+    const hasLocal = STORE.mem[k]!==undefined;
+    if(!f){   // solo lo tengo yo: se sube
+      if(STORE.t[k]===T_LEGACY){ STORE.t[k] = ahora; lsWrite(k, STORE.mem[k], ahora); }
+      STORE.dirty.add(k);
+      STORE.base[k] = undefined;
+      continue;
+    }
+    STORE.base[k] = clone(f.v);
+    if(!hasLocal){ STORE.mem[k] = clone(f.v); STORE.t[k] = f.t; lsWrite(k, f.v, f.t); changed = true; continue; }
+    if(deepEq(STORE.mem[k], f.v)) continue;
+    if(f.t > STORE.t[k]){   // el archivo es más reciente: lo adopto
+      STORE.mem[k] = clone(f.v); STORE.t[k] = f.t; lsWrite(k, f.v, f.t);
+      changed = true; reemplazado = true;
+    } else {
+      STORE.dirty.add(k);   // lo mío es más reciente: se sube
+    }
   }
+  STORE.status = 'connected'; STORE.msg = '';
+  if(reemplazado){
+    try{ await writeCopia(`antes_de_vincular_${ymd()}_${Date.now()}.json`, {exportedAt:ahora, data:antes}); }
+    catch(e){ console.warn('No se pudo guardar la copia previa a vincular', e); }
+  }
+  await syncToFile();
+  return changed;
+}
+
+function scheduleSync(){
+  clearTimeout(STORE.timer);
+  STORE.timer = setTimeout(()=>{ syncToFile(); }, 500);
+}
+function flushStore(){ clearTimeout(STORE.timer); return syncToFile() || Promise.resolve(); }
+function syncToFile(){
+  if(STORE.syncing){ STORE.again = true; return STORE.syncing; }
+  STORE.syncing = doSync().finally(()=>{ STORE.syncing = null; renderStoreStatus(); });
+  return STORE.syncing;
+}
+async function doSync(){
+  if(!STORE.fileHandle || STORE.status==='needs-permission' || STORE.status==='unsupported') return;
+  let remote = false;
+  try{
+    do{
+      STORE.again = false;
+      if(!STORE.dirty.size) break;
+      const file = await readStoreFile();
+      const hoy = ymd();
+      const pre = (file && STORE.copiaHoy!==hoy) ? JSON.stringify(file) : null;
+      const out = (file && file.keys) || {};
+      const hechas = [];
+      // bloques que otro PC ha cambiado y yo no estoy editando: se adoptan en mi copia
+      for(const [k, fv] of Object.entries(out)){
+        if(STORE.dirty.has(k) || deepEq(STORE.base[k], fv.v)) continue;
+        STORE.mem[k] = clone(fv.v); STORE.base[k] = clone(fv.v); STORE.t[k] = fv.t; lsWrite(k, fv.v, fv.t);
+        remote = true;
+      }
+      for(const k of [...STORE.dirty]){
+        const mine = clone(STORE.mem[k]);
+        if(mine===undefined){ hechas.push({k, base:undefined}); continue; }
+        const theirs = out[k] ? out[k].v : undefined;
+        const merged = merge3(STORE.base[k], mine, theirs);
+        const t = STORE.t[k] || new Date().toISOString();
+        if(!deepEq(merged, mine)){ STORE.mem[k] = clone(merged); lsWrite(k, merged, t); remote = true; }
+        out[k] = {t, v: merged};
+        hechas.push({k, base:clone(merged)});
+      }
+      await writeStoreFile({app:'cuadrante_turnos', version:1, savedAt:new Date().toISOString(), keys:out});
+      for(const h of hechas){ STORE.base[h.k] = h.base; STORE.dirty.delete(h.k); }
+      STORE.status = 'connected'; STORE.msg = ''; STORE.lastSync = new Date();
+      if(pre){   // respaldo diario: el estado del archivo ANTES del primer cambio del día
+        try{
+          const copias = await STORE.dir.getDirectoryHandle('copias', {create:true});
+          const nombre = `cuadrante_datos_${hoy}.json`;
+          let existe = true;
+          try{ await copias.getFileHandle(nombre); }catch(e){ existe = false; }
+          if(!existe){ await writeCopia(nombre, pre); await podarCopias(copias, 30); }
+          STORE.copiaHoy = hoy;
+        }catch(e){ console.warn('No se pudo crear la copia diaria', e); }
+      }
+    }while(STORE.again);
+  }catch(e){
+    console.warn('No se pudo sincronizar con el archivo de datos', e);
+    STORE.status = (e && e.name==='NotAllowedError') ? 'needs-permission' : 'error';
+    STORE.msg = (e && e.message) || String(e);
+  }
+  if(remote){ await loadAll(); aviso('Se han fusionado cambios hechos desde otro PC.'); }
+}
+// Trae los cambios que otro PC haya guardado en el archivo (al volver a la pestaña y cada minuto)
+async function pullFromFile(){
+  if(STORE.status!=='connected' || STORE.syncing || !STORE.fileHandle) return;
+  if(STORE.dirty.size){ scheduleSync(); return; }
+  const modal = document.getElementById('gantt-modal');
+  if(modal && modal.style.display==='block') return;   // no refrescar mientras se edita un turno
+  try{
+    const f = await STORE.fileHandle.getFile();
+    if(f.lastModified===STORE.lastFileStamp) return;
+    const file = await readStoreFile();
+    if(!file) return;
+    let changed = false;
+    for(const [k, fv] of Object.entries(file.keys)){
+      if(STORE.dirty.has(k) || deepEq(STORE.base[k], fv.v)) continue;
+      STORE.mem[k] = clone(fv.v); STORE.base[k] = clone(fv.v); STORE.t[k] = fv.t; lsWrite(k, fv.v, fv.t);
+      changed = true;
+    }
+    if(changed){ await loadAll(); aviso('Datos actualizados desde el archivo (cambios de otro PC).'); }
+  }catch(e){
+    console.warn('No se pudo leer el archivo de datos', e);
+    STORE.status = (e && e.name==='NotAllowedError') ? 'needs-permission' : 'error';
+    STORE.msg = (e && e.message) || String(e);
+    renderStoreStatus();
+  }
+}
+window.addEventListener('focus', ()=>{ pullFromFile(); });
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pullFromFile(); });
+setInterval(()=>{ if(!document.hidden) pullFromFile(); }, 60000);
+
+async function initStore(){
+  for(const k of BACKUP_KEYS){
+    const v = lsRead(k);
+    if(v!==undefined){ STORE.mem[k] = v; STORE.t[k] = localStorage.getItem(LS_T_PREFIX+k) || T_LEGACY; }
+  }
+  if(!(window.showDirectoryPicker && window.indexedDB)){ STORE.status = 'unsupported'; return; }
+  try{
+    const dir = await idbGet('dir');
+    if(dir){
+      STORE.dir = dir;
+      const perm = await dir.queryPermission({mode:'readwrite'});
+      if(perm==='granted') await connectStore(dir);
+      else STORE.status = 'needs-permission';
+    }
+  }catch(e){
+    console.warn('No se pudo abrir la carpeta de datos', e);
+    STORE.status = (e && e.name==='NotAllowedError') ? 'needs-permission' : 'error';
+    STORE.msg = (e && e.message) || String(e);
+  }
+}
+async function vincularCarpeta(){
+  try{
+    const dir = await window.showDirectoryPicker({id:'cuadrante-datos', mode:'readwrite'});
+    const changed = await connectStore(dir);
+    if(changed) await loadAll();
+    aviso('Carpeta de datos vinculada.');
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    STORE.status = 'error'; STORE.msg = (e && e.message) || String(e);
+  }
+  renderStoreStatus();
+}
+async function reconectarCarpeta(){
+  try{
+    if(!STORE.dir){ return vincularCarpeta(); }
+    const perm = await STORE.dir.requestPermission({mode:'readwrite'});
+    if(perm!=='granted') throw new Error('No se concedió permiso a la carpeta');
+    const changed = await connectStore(STORE.dir);
+    if(changed) await loadAll();
+    aviso('Reconectado con la carpeta de datos.');
+  }catch(e){
+    STORE.status = 'error'; STORE.msg = (e && e.message) || String(e);
+  }
+  renderStoreStatus();
+}
+function aviso(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:18px;right:18px;background:var(--text);color:var(--panel);padding:10px 14px;border-radius:8px;font-size:12.5px;z-index:2000;box-shadow:0 6px 24px rgba(0,0,0,.25);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(()=>{ t.style.display = 'none'; }, 4500);
+}
+function escHtml(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function renderStoreStatus(){
+  const b = document.getElementById('store-banner');
+  const s = document.getElementById('store-status');
+  const nombre = STORE.dir ? escHtml(STORE.dir.name) : '';
+  let banner = '', estado = '', cls = 'store-banner';
+  switch(STORE.status){
+    case 'connected':
+      estado = `<span style="color:var(--local);">● Guardando en <strong>${STORE_FILE}</strong> (carpeta <strong>${nombre}</strong>)${STORE.lastSync?` — última sincronización ${STORE.lastSync.toLocaleTimeString('es-ES')}`:''}.</span>`;
+      break;
+    case 'needs-permission':
+      estado = `<span style="color:var(--danger);">● Hay que reconectar con la carpeta <strong>${nombre}</strong>. Mientras tanto los cambios solo se guardan en este navegador.</span>`;
+      banner = `<span>🔌 Hay que <strong>reconectar con la carpeta de datos</strong> (el navegador pide confirmarlo al reabrirlo). Mientras tanto, los cambios solo se guardan en este navegador.</span><button class="primary" data-store-action="reconnect">Reconectar</button>`;
+      break;
+    case 'error':
+      cls += ' err';
+      estado = `<span style="color:var(--danger);">● Problema con el archivo de datos: ${escHtml(STORE.msg)}. Los cambios se guardan en este navegador y se reintentará.</span>`;
+      banner = `<span>⚠ Problema con el archivo de datos: ${escHtml(STORE.msg)}. Tus cambios están a salvo en este navegador.</span><button class="primary" data-store-action="reconnect">Reintentar</button>`;
+      break;
+    case 'unsupported':
+      cls += ' err';
+      estado = `<span style="color:var(--danger);">● Este navegador no permite vincular una carpeta. Usa Chrome o Edge. Mientras tanto los datos solo se guardan en este navegador.</span>`;
+      banner = `<span>⚠ Este navegador no permite vincular una carpeta de datos (usa Chrome o Edge). Los cambios solo se guardan aquí.</span>`;
+      break;
+    default:
+      estado = `<span style="color:var(--danger);">● Sin carpeta vinculada: los datos solo se guardan en este navegador.</span>`;
+      banner = `<span>⚠ <strong>Sin carpeta de datos vinculada:</strong> los cambios solo se guardan en este navegador (si borras sus datos, se pierden).</span><button class="primary" data-store-action="link">Vincular carpeta de datos</button>`;
+  }
+  if(b){ b.className = cls; b.style.display = banner ? 'flex' : 'none'; b.innerHTML = banner; }
+  if(s) s.innerHTML = estado;
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-store-action]');
+  if(!btn) return;
+  if(btn.dataset.storeAction==='link') vincularCarpeta();
+  else if(btn.dataset.storeAction==='reconnect') reconectarCarpeta();
+});
+
+async function loadKey(key, fallback){
+  return STORE.mem[key]!==undefined ? STORE.mem[key] : fallback;
+}
+async function saveKey(key, val, opts){
+  const t = (opts && opts.seed) ? (STORE.t[key] || T_SEED) : new Date().toISOString();
+  STORE.mem[key] = val; STORE.t[key] = t;
+  lsWrite(key, val, t);
+  STORE.dirty.add(key);
+  scheduleSync();
 }
 
 let __loadAllCompleted = false;
 async function loadAll(){
-  // Todas estas claves son independientes entre sí, así que se piden en PARALELO (Promise.all)
-  // en vez de una detrás de otra: si se hicieran en serie, con el timeout de withTimeout cada
-  // una podría tardar hasta su máximo por separado y sumar casi un minuto de pantalla en blanco
-  // si Supabase va lento. En paralelo, el tiempo total es como mucho el de la más lenta.
-  // El try/catch asegura que, pase lo que pase, renderAll() se llama igualmente con lo cargado
-  // hasta ese punto, en vez de quedarse en blanco para siempre.
+  // Los datos ya están en memoria (initStore los carga del navegador y del archivo de la carpeta
+  // vinculada), así que esto es inmediato. El try/catch asegura que, pase lo que pase, renderAll()
+  // se llama igualmente con lo cargado hasta ese punto, en vez de quedarse en blanco para siempre.
+  // Los guardados marcados {seed:true} son valores por defecto: nunca se imponen a datos reales
+  // de otro PC al vincular la carpeta.
   try{
     const [shiftCatalog, savedPatterns, workerConfig, vacaciones, holidayExceptions, manualOverrides,
            dayOverrides, dayTopics, dayOrder, balances, fichas, secciones, productionAntena3, savedFestivos] = await Promise.all([
@@ -1418,7 +1717,7 @@ async function loadAll(){
     ]);
     STATE.shiftCatalog = shiftCatalog;
     if(savedPatterns) STATE.patternCatalog = savedPatterns;
-    else { STATE.patternCatalog = JSON.parse(JSON.stringify(PATTERNCATALOG_SEED)); await saveKey('patternCatalog', STATE.patternCatalog); }
+    else { STATE.patternCatalog = JSON.parse(JSON.stringify(PATTERNCATALOG_SEED)); await saveKey('patternCatalog', STATE.patternCatalog, {seed:true}); }
     STATE.workerConfig = workerConfig;
     STATE.vacaciones = vacaciones;
     STATE.holidayExceptions = holidayExceptions;
@@ -1433,11 +1732,11 @@ async function loadAll(){
     for(const name of Object.keys(FICHAS_SEED)){
       if(!STATE.fichas[name]){ STATE.fichas[name] = FICHAS_SEED[name]; fichasChanged = true; }
     }
-    if(fichasChanged) await saveKey('fichas', STATE.fichas);
+    if(fichasChanged) await saveKey('fichas', STATE.fichas, {seed:true});
     STATE.productions.antena3 = productionAntena3;
     applyNameMerges();
     if(savedFestivos) STATE.festivos = savedFestivos;
-    else await saveKey('festivosCustom', STATE.festivos);
+    else await saveKey('festivosCustom', STATE.festivos, {seed:true});
   }catch(e){
     console.warn('Error cargando datos, se muestra con lo disponible', e);
   }
@@ -4772,41 +5071,6 @@ document.getElementById('pl-export-pdf').addEventListener('click', ()=>{
 
 /* ---------- init ---------- */
 /* ---------- COPIA DE SEGURIDAD (export/import de todos los datos) ---------- */
-/* ---------- estado de conexión Supabase y subida de datos locales ---------- */
-async function renderSupabaseStatus(){
-  const el = document.getElementById('supabase-status');
-  if(!el) return;
-  if(!supabaseClient){
-    el.innerHTML = `<span style="color:var(--danger);">● Sin conexión a Supabase — trabajando solo en local.</span>`;
-    return;
-  }
-  try{
-    const { error } = await supabaseClient.from('sexta_data').select('key').limit(1);
-    if(error) throw error;
-    el.innerHTML = `<span style="color:var(--local);">● Conectado a Supabase (sexta-coor) — tus cambios se guardan en la nube.</span>`;
-  }catch(e){
-    el.innerHTML = `<span style="color:var(--danger);">● No se pudo conectar con Supabase ahora mismo — usando copia local mientras tanto.</span>`;
-  }
-}
-document.getElementById('supabase-push-local').addEventListener('click', async ()=>{
-  const statusEl = document.getElementById('supabase-push-status');
-  if(!supabaseClient){ statusEl.innerHTML = `<p style="color:var(--danger);">No hay conexión a Supabase ahora mismo.</p>`; return; }
-  statusEl.innerHTML = `<p class="muted">Subiendo…</p>`;
-  let ok=0, fail=0;
-  for(const k of BACKUP_KEYS){
-    try{
-      const raw = localStorage.getItem('cuadrante_turnos_'+k);
-      if(raw==null) continue;
-      const value = JSON.parse(raw);
-      const { error } = await supabaseClient.from('sexta_data').upsert({ key:k, value, updated_at:new Date().toISOString() });
-      if(error) throw error;
-      ok++;
-    }catch(e){ fail++; }
-  }
-  statusEl.innerHTML = `<p style="color:${fail?'var(--danger)':'var(--local)'};">Subidos ${ok} bloques de datos${fail?`, ${fail} con error`:''}.</p>`;
-});
-const BACKUP_KEYS = ['shiftCatalog','patternCatalog','workerConfig','vacaciones','holidayExceptions',
-  'manualOverrides','dayOverrides','balances','fichas','dayTopics','dayOrder','festivosCustom','productionAntena3','secciones'];
 document.getElementById('backup-export').addEventListener('click', async ()=>{
   const data = {};
   for(const k of BACKUP_KEYS){
@@ -4840,8 +5104,9 @@ document.getElementById('backup-file-input').addEventListener('change', e=>{
           await saveKey(k, data[k]);
         }
       }
-      document.getElementById('backup-status').innerHTML = `<p style="color:var(--local);">Datos importados. Recargando…</p>`;
-      setTimeout(()=>location.reload(), 800);
+      document.getElementById('backup-status').innerHTML = `<p style="color:var(--local);">Datos importados. Guardando y recargando…</p>`;
+      await flushStore();
+      setTimeout(()=>location.reload(), 400);
     }catch(err){
       document.getElementById('backup-status').innerHTML = `<p style="color:var(--danger);">No se pudo leer el archivo: ${err.message}</p>`;
     }
@@ -4898,8 +5163,7 @@ function renderAll(){
   renderPlanilla();
   renderSecciones();
 }
-loadAll();
-renderSupabaseStatus();
+initStore().catch(e=>console.warn('Error iniciando el almacenamiento', e)).then(()=>{ renderStoreStatus(); loadAll(); });
 // Red de seguridad: si por lo que sea la carga inicial no ha terminado en unos segundos (p.ej.
 // se queda colgada en el primer intento de conectar), se reintenta entera sin esperar a la
 // primera — así la pantalla no se queda en blanco para siempre a la espera de un intento fallido.
